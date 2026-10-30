@@ -1,0 +1,14 @@
+# Tema do dashboard (app/dashboard.py). Mesma paleta de app/tema.py — ver ADR-016.
+[theme]
+base = "light"
+primaryColor = "#256ABF"
+backgroundColor = "#F7F7F5"
+secondaryBackgroundColor = "#EDECE8"
+textColor = "#1F1F1D"
+font = "sans serif"
+
+[client]
+toolbarMode = "minimal"
+
+[browser]
+gatherUsageStats = false
