@@ -20,6 +20,9 @@ engenharia de dados. Projeto de portfólio pessoal.
 - Silver persistido em `data/silver/` (CSV por ano + consolidado, não
   versionado) e relatório de qualidade por ano em
   `docs/relatorio_qualidade_silver.md`.
+- Dashboard interativo (`app/dashboard.py`, Streamlit) sobre o silver: ranking
+  e mapa por bairro, série temporal, hora × dia da semana e severidade, com
+  filtros de ano, bairro e severidade. Decisões em ADR-016.
 - Fase 1: conta AWS verificada, com AWS Budget de gasto zero.
 - Fase 2, Estágio 0: Terraform do bucket de state em `terraform/bootstrap/`
   (ADR-011, ADR-012).
@@ -51,9 +54,29 @@ com CI via GitHub Actions + Checkov.
 Nota de projeto: a Lambda é colocada dentro da VPC **por decisão de portfólio**,
 não por necessidade funcional. Ver `docs/decisions.md` (ADR-001).
 
+## Dashboard
+
+![Visão geral do dashboard](docs/img/dashboard_visao_geral.png)
+
+Com o ambiente ativado (`.venv\Scripts\activate`), a partir da raiz do repositório:
+
+```powershell
+pip install -r requirements.txt
+streamlit run app/dashboard.py
+```
+
+Abre em http://localhost:8501. Pré-requisitos na primeira vez: o silver em
+`data/silver/` (`python src/transform_sinistros.py`) e, para o mapa, a malha de
+bairros em `data/geo/` (`python src/baixa_malha_bairros.py`). Sem a malha o
+painel abre sem o mapa.
+
+Prints em `docs/img/`: visão geral e um recorte filtrado (Boa Viagem, 2019–2024,
+com vítima e vítima fatal).
+
 ## Estrutura
 
 ```
+app/    dashboard Streamlit (dashboard.py) e sua camada de dados/tema
 src/    transformação (e, em fases futuras, o handler da Lambda)
 tests/  testes locais (pytest)
 docs/   ROADMAP e decisões de arquitetura (ADRs)
