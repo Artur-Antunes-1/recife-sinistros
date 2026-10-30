@@ -61,6 +61,7 @@ Fase 5 — CI/CD
 Fase 6 — Análise (o payoff de "dados")
  Consultar o silver
  Agregação por bairro (sem geocoding — ver decisão ADR-008)
+ Dashboard local (Entregável 4, 30/10/2026): app/dashboard.py em Streamlit lendo o silver — ranking e mapa por bairro, série, hora × dia, severidade, filtros. Casamento de bairro com a malha oficial: 3/97 grafias sem polígono após de-para explícito de 5 nomes (ver ADR-016). Adiantado em relação à ordem das fases por prazo da disciplina; não depende da AWS.
 Fase 7 — Polimento de portfólio
  README com diagrama de arquitetura
  ADRs revisados (docs/decisions.md)
@@ -70,5 +71,6 @@ Pendências conhecidas (não esquecer)
 Granularidade de tipo_sinistro: 2024 é fino, 2015 é grosso. Se quiser comparar espécie entre anos, precisa de uma tabela de-para. Em aberto.
 vitimas cru: o dicionário oficial contradiz o dado de 2015; não derivamos "total de vítimas". Ver ADR-007.
 Bairro: recuperar os vazios (148 em 2019) a partir do texto do endereço foi avaliado e NÃO aplicado — só 12/145 (8%) casaram por substring simples, com falso-positivo claro. Precisaria de uma base de ruas real. Em aberto.
+Bairro: o dashboard aplica um de-para de 5 grafias SÓ na camada de apresentação (ADR-016); o silver continua sem ele. Decidir se esse de-para sobe para o silver.
 Bairro: ~4 variações de nome residuais após normalizar acento (ex.: "IPESEP" vs "IPSEP", "JOANA BEZERRA" vs "ILHA JOANA BEZERRA") não são acento — não corrigidas por exigirem julgamento, não regra determinística. Em aberto.
 Papel no Projeto 5e6 (CESAR): se/como este projeto absorve a camada de deploy AWS daquela disciplina — ainda em aberto.

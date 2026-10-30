@@ -150,3 +150,41 @@ O que NÃO é removido: linhas parecidas que diferem em qualquer campo (ex.: mes
 Achados reais (20/10/2026, CSVs de data/raw/): `protocolo` só existe em 2022-2024, e nesses anos não há nenhum protocolo repetido. Linhas idênticas: 1 par em 2017 e 1 par em 2021 (ambos FINALIZADA, mesma data/hora/endereço/contagens); 0 nos outros anos. Ou seja, a dedup removeu 2 linhas em 10 anos.
 
 Ressalva sobre o critério 2: "manter a primeira" é arbitrário quando o protocolo repete com conteúdo DIFERENTE (pode ser uma correção posterior do chamado, e aí a última seria a certa). Como hoje há zero casos reais, a escolha não afeta nenhum número. Se aparecer caso real, inspecionar antes de confiar na regra.
+
+ADR-016 — Dashboard (Entregável 4): Streamlit local lendo o silver, regras de honestidade e critério de casamento de bairro
+
+Primeira versão do dashboard em `app/dashboard.py` (Streamlit + Plotly), lendo `data/silver/sinistros_consolidado.csv` direto — sem backend, sem banco. A lógica de dados fica em `app/dados_painel.py` (pandas puro, testada em `tests/test_dashboard.py`) e a paleta em `app/tema.py`. Roda local, custo zero; não toca a AWS.
+
+**Narrativa.** A pergunta é "onde estão os pontos críticos e o que os caracteriza". De cima para baixo: título que afirma o achado com o número (calculado sobre o recorte, nunca texto fixo), quatro indicadores, ranking + mapa (onde), série anual/mensal e hora × dia (quando), severidade (o que caracteriza), e uma lista "Como ler este painel" com todas as limitações. Filtros de ano, bairro e severidade na barra lateral, combináveis, aplicados a todos os gráficos; clicar numa barra do ranking filtra a página por aquele bairro. Recorte vazio mostra um aviso no lugar dos gráficos, sem quebrar.
+
+**Regras de honestidade embutidas no código** (cada uma visível no painel, não só aqui):
+
+1. O filtro FINALIZADA já está no silver (ADR-005) e não é reaplicado.
+2. Fatais são contados pela severidade "VÍTIMA FATAL", nunca somando `vitimasfatais` (ADR-003/ADR-014). A faixa 2016–2020 aparece marcada nos gráficos de severidade.
+3. A queda 2019→2021 é mostrada como queda de **registro**, com causa desconhecida. Achado ao montar o painel: quase toda a queda está nos chamados SEM VÍTIMA (8.046 em 2019 → 434 em 2021), enquanto os COM VÍTIMA variam menos (2.036 → 1.631). Isso reforça que mudou o que é registrado; não prova a causa.
+4. Títulos de gráfico são calculados sobre o recorte e só afirmam o que o recorte sustenta. Achado ao testar: com Boa Viagem + só COM VÍTIMA, o título anual dizia "os registros caem -3%" quando o recorte subia (180 → 186). Corrigido, com teste de regressão.
+5. "NÃO INFORMADO" em bairro entra nos totais e sai de ranking, mapa e % de concentração; a cobertura do mapa (quantos ficaram de fora e por quê) é exibida sob o mapa.
+6. Os números de "linhas de entrada" do relatório (12.062 → 4.092 → 2.380) são do bruto; o painel mostra o silver (10.109 → 3.496 → 2.095) e cita os dois na nota.
+7. A série mensal exclui as 32 linhas com `data_fora_do_ano` (dez/2025 no arquivo de 2024); elas continuam nos totais, e a nota diz quantas.
+8. 2022 não tem hora em nenhuma linha (2.391); o mapa de calor diz quantos registros ficaram de fora.
+
+**Critério de casamento bairro (CSV) × malha oficial.** Malha: GeoJSON "Bairros do Recife" do dataset "Área urbana" do portal (ODbL), 94 bairros, baixado por `src/baixa_malha_bairros.py` para `data/geo/` (não versionado, como `data/raw/`). Medido em 30/10/2026:
+
+- Normalização determinística dos dois lados (`normaliza_nome`: sem acento, maiúscula, só letras/dígitos, espaço simples). A chave da malha vem de `EBAIRRNOME`; `EBAIRRNOMEOF` (nome com acento) **não** é usada porque vem corrompida do próprio portal (caractere U+FFFD no lugar de acento, ex.: "S�o Jos�"). O nome exibido no painel é a grafia crua mais frequente do silver (`bairro_original`).
+- Só com normalização: **8 de 97 grafias do CSV não casam (8,2%), 1.057 registros (1,8%)**.
+- De-para explícito de 5 grafias (`ALIAS_MALHA`), aplicado **só no painel** — o silver não muda: BAIRRO DO RECIFE→RECIFE, JOANA BEZERRA→ILHA JOANA BEZERRA, ALTO SANTA TERESINHA→ALTO SANTA TEREZINHA, POCO DA PANELA→POCO, IPESEP→IPSEP. Critério para entrar: o nome do CSV não existe na malha **e** o nome da malha não aparece no CSV (conjuntos complementares), ou é erro de digitação de uma letra com 1 registro (IPESEP). É julgamento, não regra — por isso a lista é curta, explícita e reversível, e o painel reporta os dois números.
+- Depois do de-para: **3 de 97 não casam (3,1%), 3 registros** (SETUBAL, MARCELO, FABIO — não são bairros oficiais) e ficam fora do mapa. 2 bairros da malha não têm nenhum registro (PAU FERRO, PEIXINHOS) e aparecem com 0.
+- Relação com ADR-014: lá o de-para foi recusado **no silver** (que é fonte para qualquer uso). Aqui ele é uma camada de apresentação, documentada e medida; o silver segue sem julgamento.
+
+**Decisões visuais.**
+
+- Paleta restrita: texto `#1F1F1D`, texto secundário `#4F4E4A`, fundo `#F7F7F5` (lateral `#EDECE8`), uma cor de destaque (azul `#256ABF`) para a série principal, cinza `#C4C3BE` para marca secundária. Sem arco-íris, sem 3D, sem pizza, eixos começando em zero.
+- Sequencial de tom único (azul) em **6 classes discretas**, não rampa contínua. Motivo medido: numa rampa contínua há uma faixa de azul médio (~`#337FDA`) onde nem texto escuro nem branco chegam a 4,5:1 (pior caso 4,08:1) — e o mapa de calor tem número dentro de cada célula. As classes pulam essa faixa: as três claras levam texto escuro, as três escuras levam branco.
+- **Contraste mínimo de texto medido: 5,39:1** (branco sobre o azul de destaque, nos rótulos dentro das barras e nas classes escuras). Texto principal sobre o fundo: 15,4:1; secundário: 7,8:1. Teste automatizado garante ≥ 4,5:1 em todos os pares.
+- Cor nunca é o único portador: barras e células com valor rotulado; severidade com legenda + rótulo de % + hachura em "não informado"; 2015 em azul claro **e** rotulado "parcial" / "jun–dez". O mapa não tem rótulos de texto (sobrepunham-se no centro); os valores estão no ranking ao lado, na mesma ordem, e no hover.
+- Hierarquia tipográfica: título 30px > achado 19px > indicador 28px/13px > título de gráfico 17px/13px > nota 12px; espaçamento numa grade de 8px. Cada gráfico tem título que afirma algo, subtítulo com o recorte, unidade no eixo e o n daquele recorte.
+- Rodapé fixo com fonte, período, data de extração (data dos CSVs em `data/raw/` e do silver), total e link para o relatório de qualidade.
+
+**Fatais em 2015.** A coluna `vitimasfatais` não existe em 2015, mas a severidade existe: o gráfico de fatais inclui 2015 (23 chamados), marcado como ano parcial.
+
+Pendências: normalizar por área ou população do bairro (hoje é contagem absoluta, e o painel avisa); publicar o painel (hoje é local).
