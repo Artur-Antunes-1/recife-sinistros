@@ -11,5 +11,16 @@ transformação procura por qualquer arquivo `*<ano>*.csv` nesta pasta.
 
 Portal: https://dados.recife.pe.gov.br  (dataset publicado pela CTTU)
 
+## Malha de bairros (mapa do dashboard)
+
+O mapa do dashboard usa o GeoJSON "Bairros do Recife" do dataset "Área urbana"
+(também ODbL). Não é versionado; baixe com:
+
+```powershell
+python src/baixa_malha_bairros.py
+```
+
+Sem ele o dashboard funciona, mas sem o mapa (o ranking vira a visão geográfica).
+
 > Atenção: os IDs de recurso do portal mudam. Baixe sempre pela página do
 > dataset, não por URLs de download antigas (elas retornam 404).

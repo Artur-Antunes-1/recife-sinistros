@@ -9,6 +9,10 @@ venv/
 data/raw/*.csv
 data/silver/
 
+# Malha de bairros (GeoJSON, ~2 MB): baixável do portal, ODbL.
+# Ver src/baixa_malha_bairros.py
+data/geo/
+
 # Terraform (fases futuras)
 .terraform/
 *.tfstate
