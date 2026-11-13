@@ -35,6 +35,12 @@ BRANCO = "#FFFFFF"
 # claras levam texto escuro (>= 6,6:1), as três escuras levam branco (>= 5,39:1).
 RAMPA = ["#CDE2FB", "#9EC5F4", "#6DA7EC", "#256ABF", "#184F95", "#0D366B"]
 
+# Resultado da previsão (página de previsão, ADR-017): as 4 células da matriz
+# de confusão. Tom = acerto (azul) ou erro (laranja, par seguro para
+# daltonismo); luminosidade = classe observada (escuro = volume elevado).
+# Sempre com legenda e contagem rotulada — a cor nunca carrega o dado sozinha.
+CORES_RESULTADO = {"VP": DESTAQUE, "VN": "#CDE2FB", "FN": "#B5470C", "FP": "#F2B186"}
+
 FONTE = '"Source Sans Pro", "Source Sans 3", "Segoe UI", sans-serif'
 
 

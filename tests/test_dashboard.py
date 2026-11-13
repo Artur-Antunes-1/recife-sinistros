@@ -183,7 +183,8 @@ def test_todo_texto_do_painel_tem_contraste_minimo_4_5():
         (tema.TEXTO, tema.GRADE), (tema.TEXTO_2, tema.GRADE),       # anotações nas faixas
         (tema.BRANCO, tema.DESTAQUE), (tema.BRANCO, tema.ESCURO),   # % dentro das barras
         (tema.TEXTO, tema.CINZA_MARCA),
-    ] + [(tema.texto_sobre(c), c) for c in tema.RAMPA]
+    ] + [(tema.texto_sobre(c), c) for c in tema.RAMPA] \
+      + [(tema.texto_sobre(c), c) for c in tema.CORES_RESULTADO.values()]  # matriz da previsão
     piores = sorted((tema.contraste(a, b), a, b) for a, b in pares)
     assert piores[0][0] >= 4.5, piores[0]
 
