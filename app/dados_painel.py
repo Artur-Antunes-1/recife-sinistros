@@ -263,4 +263,17 @@ def fmt_int(n: int) -> str:
 
 
 def fmt_pct(v: float, casas: int = 1) -> str:
-    return f"{v:.{casas}f}".replace(".", ",") + "%"
+    """Formata percentual em pt-BR.
+
+    Nunca arredonda para 100% um valor menor que 100, nem para 0% um valor
+    maior que 0. O arredondamento afirmaria o que o dado não sustenta: a
+    severidade conhecida é 99,95085% (29 registros sem severidade em 59.006)
+    e aparecia como "100,0% ... 29 sem severidade", que se contradiz na tela.
+    """
+    passo = 10 ** -casas
+    texto = f"{v:.{casas}f}"
+    if v < 100 and float(texto) >= 100:
+        texto = f"{100 - passo:.{casas}f}"
+    elif v > 0 and float(texto) <= 0:
+        texto = f"{passo:.{casas}f}"
+    return texto.replace(".", ",") + "%"

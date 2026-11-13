@@ -205,3 +205,21 @@ def test_app_nao_afirma_queda_quando_o_recorte_sobe():
     at = _app(ajuste)
     titulos = [m.value for m in at.markdown if 'class="ch-t"' in m.value and "2019 a 2021" in m.value]
     assert titulos and all("Os registros caem" not in x for x in titulos), titulos
+
+def test_fmt_pct_nunca_arredonda_para_100_nem_para_0():
+    """99,95% nao pode virar "100,0%" ao lado de "29 sem severidade".
+
+    Regressao: o KPI de severidade mostrava 100,0% com 29 registros sem
+    severidade, duas afirmacoes que se contradizem na mesma linha.
+    """
+    # o caso real: 58.977 de 59.006
+    assert dp.fmt_pct((59006 - 29) / 59006 * 100) == "99,9%"
+    # so 100% exato pode exibir 100%
+    assert dp.fmt_pct(100.0) == "100,0%"
+    assert dp.fmt_pct(99.999) == "99,9%"
+    assert dp.fmt_pct(99.96, 0) == "99%"
+    assert dp.fmt_pct(100.0, 0) == "100%"
+    # o espelho: valor pequeno mas nao nulo nao pode virar 0%
+    assert dp.fmt_pct(0.0) == "0,0%"
+    assert dp.fmt_pct(0.004) == "0,1%"
+    assert dp.fmt_pct(0.4, 0) == "1%"
