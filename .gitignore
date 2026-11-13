@@ -22,3 +22,9 @@ data/geo/
 # IDE / SO
 .vscode/
 .DS_Store
+
+# Entrega de classificadores (ZIP do grupo): mesma convenção de data/raw/.
+# Brutos e base tratada não são versionados; a malha é a mesma de data/geo/.
+entrega_classificadores/dados/brutos/*.csv
+entrega_classificadores/dados/brutos/*.geojson
+entrega_classificadores/dados/*.csv.gz

@@ -1,0 +1,23 @@
+ROTEIRO CURTO PARA APRESENTAÇÃO DA ENTREGA
+
+1. Problema e alvo (40 s): prever volume de chamados no mês seguinte. O alvo
+é bairro-mês >=3 chamados, definido no treino. Não é gravidade nem risco individual.
+
+2. Método (50 s): treino jul/2021-dez/2022, validação em 2023 e teste em 2024.
+Usamos lags, médias anteriores, mês e bairro. Sem informações do mês do alvo.
+Comparamos logística e árvore com majoritária e persistência.
+
+3. Matriz (1 min): logística selecionada na validação; em 2024, 479 positivos
+identificados, 40 omitidos, 136 falsos alertas e 473 negativos corretos.
+Precisão 77,9%, recall 92,3% e F1 0,845.
+
+4. Curvas (50 s): ROC AUC 0,945; AP 0,940. As curvas usam scores e variam o
+limiar. O teste tem 46,0% de positivos; AP não é integração trapezoidal.
+
+5. Implicação (50 s): a logística ganha pouco F1 contra persistência, mas deixa
+46 casos elevados a menos sem alerta, com 51 falsos alertas adicionais.
+A árvore teve F1 pontual maior no teste, mas mantivemos a seleção anterior.
+
+6. Limites (40 s): chamados não são acidentes únicos. Captação e prevalência
+mudam. Há bairros sem vínculo, datas de outro ano e dezembro parcial na janela.
+Não há validação operacional ou efeito causal comprovado.

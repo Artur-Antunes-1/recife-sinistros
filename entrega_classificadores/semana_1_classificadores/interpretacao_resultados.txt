@@ -1,0 +1,8 @@
+Modelo selecionado: Regressão logística; limiar 0.16.
+No teste: acurácia 84.40%, precisão 77.89%, recall 92.29%, F1 0.8448.
+ROC AUC 0.9447; AP 0.9400.
+Matriz: VN=473, FP=136, FN=40, VP=479.
+Contra a persistência: 46 omissões a menos e 51 falsos alertas a mais.
+F1 da persistência=0.8351; ganho absoluto=0.0097. A acurácia da persistência=84.84%.
+A árvore teve F1 pontual superior no teste, mas não foi escolhida a posteriori.
+Não há validação operacional, causal ou de risco individual.

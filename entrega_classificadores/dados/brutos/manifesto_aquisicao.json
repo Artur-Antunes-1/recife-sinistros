@@ -1,0 +1,92 @@
+[
+  {
+    "ano": 2024,
+    "url": "https://dados.recife.pe.gov.br:443/dataset/fdd001d5-05ba-46cd-9edf-5c5a6b58351f/resource/87ac4237-f5f9-44d2-bcf1-927aaa0a2d31/download/acidentes-de-transito-2024.csv",
+    "recurso_id": "87ac4237-f5f9-44d2-bcf1-927aaa0a2d31",
+    "bytes": 1517235,
+    "sha256": "375766319e81ba147f40d013c9706abfc91f9017ffa23277533cd23bf0e0d6bd",
+    "obtido_utc": "2026-11-04T16:29:34.968112+00:00",
+    "resultado": "obtido"
+  },
+  {
+    "ano": 2023,
+    "url": "https://dados.recife.pe.gov.br:443/dataset/fdd001d5-05ba-46cd-9edf-5c5a6b58351f/resource/dbb9165a-7539-4fdd-943a-acffe12df3e0/download/acidentes-de-transito-2023.csv",
+    "recurso_id": "dbb9165a-7539-4fdd-943a-acffe12df3e0",
+    "bytes": 1146672,
+    "sha256": "b7b799697908ea894e9c22709155d54586dbf77460ff1c123795db9032687846",
+    "obtido_utc": "2026-11-04T16:29:34.961022+00:00",
+    "resultado": "obtido"
+  },
+  {
+    "ano": 2022,
+    "url": "https://dados.recife.pe.gov.br:443/dataset/fdd001d5-05ba-46cd-9edf-5c5a6b58351f/resource/c2281788-2e8c-472c-8812-67c4f85e9272/download/acidentes-de-transito-2022.csv",
+    "recurso_id": "c2281788-2e8c-472c-8812-67c4f85e9272",
+    "bytes": 993185,
+    "sha256": "b63341fc83ee98065f95498b75a8f118cd66aadbfdc8274a80842bca14c1b9b9",
+    "obtido_utc": "2026-11-04T16:29:34.791693+00:00",
+    "resultado": "obtido"
+  },
+  {
+    "ano": 2021,
+    "url": "https://dados.recife.pe.gov.br:443/dataset/fdd001d5-05ba-46cd-9edf-5c5a6b58351f/resource/31ee35d9-6f8e-4694-9492-efe96e902b07/download/acidentes-de-transito-2021.csv",
+    "recurso_id": "31ee35d9-6f8e-4694-9492-efe96e902b07",
+    "bytes": 803705,
+    "sha256": "a3d2951526ef37ac88a52fefabfc7f20b2c65e311698fb607491f61b122761cb",
+    "obtido_utc": "2026-11-04T16:29:34.979354+00:00",
+    "resultado": "obtido"
+  },
+  {
+    "ano": 2020,
+    "url": "https://dados.recife.pe.gov.br:443/dataset/fdd001d5-05ba-46cd-9edf-5c5a6b58351f/resource/b2594588-2aa8-42c4-b96d-246102ecde3c/download/acidentes-de-transito-2020.csv",
+    "recurso_id": "b2594588-2aa8-42c4-b96d-246102ecde3c",
+    "bytes": 1522947,
+    "sha256": "54046149f0fdf7b59c05ea470ab943e3a2debc478fa1c2c30679edc4a2190e76",
+    "obtido_utc": "2026-11-04T16:29:34.983196+00:00",
+    "resultado": "obtido"
+  },
+  {
+    "ano": 2019,
+    "url": "https://dados.recife.pe.gov.br:443/dataset/fdd001d5-05ba-46cd-9edf-5c5a6b58351f/resource/c9fe4a98-0f61-4e81-9c4b-a22f8dc6f1a2/download/acidentes-de-transito-2019.csv",
+    "recurso_id": "c9fe4a98-0f61-4e81-9c4b-a22f8dc6f1a2",
+    "bytes": 4929657,
+    "sha256": "e4f2f2c7b8d2ed3cd507e920e7137ff9a57a376f70cfeb68a9e3af1cf5602d18",
+    "obtido_utc": "2026-11-04T16:29:48.000205+00:00",
+    "resultado": "obtido"
+  },
+  {
+    "ano": 2018,
+    "url": "https://dados.recife.pe.gov.br:443/dataset/fdd001d5-05ba-46cd-9edf-5c5a6b58351f/resource/a7b72334-9229-4e52-a6cb-8006de4942e3/download/acidentes-de-transito-2018.csv",
+    "recurso_id": "a7b72334-9229-4e52-a6cb-8006de4942e3",
+    "bytes": 4031630,
+    "sha256": "cb5442d7d550ca127f7f3e8e2be50264479df228bdcefbf6687aacad1126fecc",
+    "obtido_utc": "2026-11-04T16:29:49.120180+00:00",
+    "resultado": "obtido"
+  },
+  {
+    "ano": 2017,
+    "url": "https://dados.recife.pe.gov.br:443/dataset/fdd001d5-05ba-46cd-9edf-5c5a6b58351f/resource/d364e034-7e00-41a7-b557-0b16c21814e7/download/acidentes-de-transito-2017.csv",
+    "recurso_id": "d364e034-7e00-41a7-b557-0b16c21814e7",
+    "bytes": 3106009,
+    "sha256": "b702af18392f6ed038c7b0914e8077c05384aa349c984d11850fb8bc2444969b",
+    "obtido_utc": "2026-11-04T16:29:47.988578+00:00",
+    "resultado": "obtido"
+  },
+  {
+    "ano": 2016,
+    "url": "https://dados.recife.pe.gov.br:443/dataset/fdd001d5-05ba-46cd-9edf-5c5a6b58351f/resource/edc820d6-0f01-4fd2-b8a4-5a8c95f7e743/download/acidentes-de-transito-2016.csv",
+    "recurso_id": "edc820d6-0f01-4fd2-b8a4-5a8c95f7e743",
+    "bytes": 3186576,
+    "sha256": "3750d56981f264081ff7367b7357eaff42684c2b1f46a6be3751ada1c21f0261",
+    "obtido_utc": "2026-11-04T16:29:48.545244+00:00",
+    "resultado": "obtido"
+  },
+  {
+    "ano": 2015,
+    "url": "https://dados.recife.pe.gov.br:443/dataset/fdd001d5-05ba-46cd-9edf-5c5a6b58351f/resource/58816e1f-18bc-4335-82bf-80ff080cb0e5/download/acidentes-de-transito-2015.csv",
+    "recurso_id": "58816e1f-18bc-4335-82bf-80ff080cb0e5",
+    "bytes": 1471349,
+    "sha256": "19fd6bb6d2ec489daa0e74ee0554dcb0a6295cdaa0a0321361382c8f1c8afb01",
+    "obtido_utc": "2026-11-04T16:29:47.984960+00:00",
+    "resultado": "obtido"
+  }
+]

@@ -1,0 +1,40 @@
+PROJETO 5 - ENTREGA DE HOJE: AVALIAÇÃO DE CLASSIFICADORES
+04/11/2026 - Recife
+
+ARQUIVO PARA APRESENTAR/ENTREGAR
+semana_1_classificadores/Entrega_1_Avaliacao_Classificadores.pdf
+Relatório de 9 páginas com resultados reais, matrizes de confusão, acurácia,
+precisão, recall, F1, curvas ROC e precision-recall, interpretação e implicações.
+
+MATERIAL TÉCNICO
+semana_1_classificadores/CTTU_Classificadores_Avaliacao.ipynb: notebook completo,
+com 15 células de código executadas sobre os CSVs reais e saídas arquivadas.
+semana_1_classificadores/graficos: 8 figuras PNG em alta resolução.
+semana_1_classificadores/tabelas: métricas, previsões individuais, painel,
+partições, limiares, intervalos exploratórios e sensibilidade sem dezembro.
+
+RESULTADO E TAREFA
+Prever se um bairro-mês tem pelo menos 3 chamados (corte do percentil 75 do treino).
+Logística selecionada pelo F1 de 2023, antes do teste em 2024.
+Teste: 84,4% de acurácia; 77,9% de precisão; 92,3% de recall; F1 0,845;
+ROC AUC 0,945; average precision 0,940. Matriz: VN 473, FP 136, FN 40, VP 479.
+Ganho de F1 pequeno sobre persistência (0,835): 46 omissões a menos,
+acompanhadas de 51 falsos alertas adicionais. Não é previsão de mortalidade.
+
+COMO REPRODUZIR
+No Colab, abrir o notebook e executar em ordem. Ele tenta adquirir os dados.
+O ZIP já contém o snapshot oficial em dados/brutos, com dez CSVs, cadastro e malha.
+Para execução local, no diretório extraído: python -m pip install -r requirements.txt
+Em seguida: python classificacao_cttu.py
+Os arquivos são produzidos nas pastas semana_1_classificadores e semana_2_dashboard.
+O notebook foi executado sequencialmente via IPython no mesmo processo;
+o kernel Jupyter por sockets não iniciou neste ambiente. O serviço Colab
+não foi acessado, mas as células têm configuração e dependências para ele.
+
+LIMITES ESSENCIAIS
+A base contém chamados da CTTU, não acidentes únicos confirmados. Todos os status
+participam do volume. Não há ajuste por fluxo ou exposição. O alvo usa bairro e
+data válidos. Só o histórico anterior entra nos preditores. O arquivo de 2024
+tem 36 datas de outro ano e termina em 28/12; uma sensibilidade exclui dezembro.
+Bairros divergentes não são associados por aproximação. Scores não calibrados.
+A prevalência do alvo muda entre os períodos. Não há validação prospectiva.

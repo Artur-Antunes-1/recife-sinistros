@@ -1,0 +1,7 @@
+{
+  "metodo": "IPython sequencial no mesmo processo; kernel Jupyter por sockets indisponível",
+  "dados_reais": true,
+  "data": "2026-11-04",
+  "celulas_codigo": 15,
+  "colab_servico_testado": false
+}
