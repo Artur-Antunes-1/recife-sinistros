@@ -73,6 +73,9 @@ NOME_E4 = (df.dropna(subset=["bairro_chave"]).drop_duplicates("bairro_chave")
 
 # --- Selo e filtros ----------------------------------------------------------------
 
+# Container reservado no topo: o título é escrito nele depois, mas aparece ACIMA
+# do selo — hierarquia título > achado > selo/indicadores (ADR-016).
+cab = st.container()
 fora_alvo = cob["registros_janela_modelo"] - cob["registros_no_alvo"]
 fim_2024 = pd.Timestamp(cob["ultima_data_2024"])
 dias_sem = fim_2024.days_in_month - fim_2024.day
@@ -103,13 +106,14 @@ ui.filtros_aplicados([
 
 # --- Topo ----------------------------------------------------------------------------
 
-ui.titulo_pagina(
+with cab:
+    ui.titulo_pagina(
     f"O modelo escolhido identificou {pct(of['recall'])} dos bairro-meses de volume elevado em "
     f"2024, com {dp.fmt_int(of['fp'])} alertas falsos",
     f"Ganho pequeno sobre simplesmente repetir o mês anterior (persistência): F1 {f3(pers['f1'])} → "
     f"{f3(of['f1'])}, com {dp.fmt_int(pers['fn'] - of['fn'])} omissões a menos e "
     f"{dp.fmt_int(of['fp'] - pers['fp'])} alertas falsos a mais.")
-st.markdown(f"""<div class="caixa">
+cab.markdown(f"""<div class="caixa">
 <div><b>O que é.</b> Para cada bairro e mês, a previsão diz se o volume de <b>chamados registrados</b>
 será elevado: pelo menos {meta['corte_contagem']} chamados, corte calculado no treino (percentil 75).
 É uma avaliação <b>retrospectiva, de um passo à frente</b>: ao fim de cada mês de 2024, prevê o mês
@@ -134,7 +138,7 @@ ui.kpis([
 # --- Comparação dos modelos ------------------------------------------------------------
 
 ui.secao("Comparação dos quatro modelos")
-col_tab, col_cm = st.columns([3, 2], gap="large")
+col_tab, col_cm = st.columns([11, 9], gap="large")
 with col_tab:
     ui.titulo_grafico(
         f"A árvore tem o maior F1 no teste ({f3(arv['f1'])}), mas a escolha foi feita na validação, "
@@ -177,13 +181,14 @@ with col_cm:
     for i, linha in enumerate(celulas):
         for j, c in enumerate(linha):
             fig.add_annotation(x=j, y=i, showarrow=False,
-                               text=f"<b>{c} {dp.fmt_int(val[c])}</b><br>{dprev.CATEGORIAS[c]}<br>"
-                                    f"{pct(val[c] / of['n'])} do teste",
-                               font=dict(size=13, color=t.texto_sobre(COR_CAT[c])))
-    ui.layout(fig, 300)
-    fig.update_xaxes(side="top", showgrid=False, tickfont=dict(color=t.TEXTO))
+                               text=f"<b>{c} {dp.fmt_int(val[c])}</b><br>{pct(val[c] / of['n'])}",
+                               font=dict(size=15, color=t.texto_sobre(COR_CAT[c])))
+    ui.layout(fig, 320)
+    fig.update_xaxes(side="top", showgrid=False, tickangle=0, tickfont=dict(color=t.TEXTO))
     fig.update_yaxes(autorange="reversed", showgrid=False, tickfont=dict(color=t.TEXTO))
     st.plotly_chart(fig, width="stretch", config=ui.CONFIG, key="matriz")
+    ui.nota("VP = acerto de volume elevado · VN = acerto de volume regular · FP = alerta falso · "
+            "FN = omissão. % sobre os bairro-meses do teste.")
 
 # --- Curvas ROC e PR -------------------------------------------------------------------
 

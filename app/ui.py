@@ -63,6 +63,7 @@ CSS = f"""
   table.tab td {{ text-align: right; padding: 6px 8px; border-bottom: 1px solid {t.GRADE};
                  font-variant-numeric: tabular-nums; }}
   table.tab th:first-child, table.tab td:first-child {{ text-align: left; }}
+  table.tab.txt th, table.tab.txt td {{ text-align: left; }}
   table.tab tr.sel td {{ font-weight: 700; background: {t.LATERAL}; }}
   .aplica {{ font-size: 12px; color: {t.TEXTO_2}; line-height: 1.5; }}
   .aplica b {{ color: {t.TEXTO}; }}

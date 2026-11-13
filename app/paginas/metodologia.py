@@ -20,6 +20,9 @@ cob = art["cobertura"] if art else None
 meta = art["meta"] if art else None
 
 _ok = df.loc[~df["data_fora_do_ano"], "data"]
+# Container reservado no topo: o título é escrito nele depois, mas aparece ACIMA
+# do selo — hierarquia título > achado > selo/indicadores (ADR-016).
+cab = st.container()
 ui.selo(
     f"esta página descreve os dois recortes do painel — <b>pontos críticos</b>: "
     f"{dp.fmt_int(len(df))} chamados FINALIZADA, {ui.mes_ano(_ok.min())} a {ui.mes_ano(_ok.max())}"
@@ -34,9 +37,10 @@ ui.selo(
         f"{cob['datas_outro_ano_2024']} em todos os status)." if cob else ".")])
 ui.filtros_aplicados([("Anos, Bairros e Severidade", "não se aplicam — esta página é texto de referência")])
 
-ui.titulo_pagina("Como os números deste painel são produzidos",
-                 "Dois recortes da mesma fonte, cada um com um propósito. Resumo aqui; detalhes nos "
-                 "blocos expansíveis.")
+with cab:
+    ui.titulo_pagina("Como os números deste painel são produzidos",
+                     "Dois recortes da mesma fonte, cada um com um propósito. Resumo aqui; detalhes nos "
+                     "blocos expansíveis.")
 
 # --- Fonte ---------------------------------------------------------------------------
 
@@ -73,7 +77,7 @@ linhas = [
     ("Data fora do ano", "fica nos totais, sai da série mensal", "fica fora do alvo"),
 ]
 corpo = "".join(f"<tr><td>{a}</td><td>{b}</td><td>{c}</td></tr>" for a, b, c in linhas[1:])
-st.markdown(f'<table class="tab"><tr><th></th><th>{linhas[0][1]}</th><th>{linhas[0][2]}</th></tr>'
+st.markdown(f'<table class="tab txt"><tr><th></th><th>{linhas[0][1]}</th><th>{linhas[0][2]}</th></tr>'
             f'{corpo}</table>', unsafe_allow_html=True)
 ui.nota("Por que dois recortes: a avaliação dos classificadores foi entregue com todos os status e "
         "está fixada; alinhá-la a FINALIZADA exigiria retreinar e mudaria o alvo de parte dos bairro-meses. "
@@ -120,7 +124,7 @@ else:
         f"{meta['classe_positiva'].lower()} (corte = teto do percentil 75 do treino). "
         f"**Partições temporais**: treino {meta['treino']}, validação {meta['validacao']}, "
         f"teste {meta['teste']}. **Modelos**: majoritária, persistência, regressão logística e árvore "
-        f"de decisão. **Seleção**: {meta['limiar_selecao'].lower()} Modelo escolhido: "
+        f"de decisão. **Seleção**: {meta['limiar_selecao']} Modelo escolhido: "
         f"regressão logística, limiar {str(meta['limiares']['logistica']).replace('.', ',')}.")
     with st.expander("Preditores, hiperparâmetros e verificações"):
         st.markdown(

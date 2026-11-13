@@ -48,6 +48,10 @@ def _desc_recorte() -> str:
 
 # --- Selo de cobertura (TRN-02) ------------------------------------------------
 
+# Container reservado no topo: o título é escrito nele depois, mas aparece ACIMA
+# do selo — hierarquia título > achado > selo/indicadores (ADR-016).
+cab = st.container()
+
 _fim_2024 = df.loc[(df["ano"] == 2024) & ~df["data_fora_do_ano"], "data"].max()
 _fora = int(df["data_fora_do_ano"].sum())
 _sem_hora_2022 = int(df.loc[df["ano"] == 2022, "hora_int"].isna().sum())
@@ -73,9 +77,10 @@ ui.filtros_aplicados([("Anos", "aplicado"), ("Bairros", "aplicado"), ("Severidad
 # --- Topo: a resposta ------------------------------------------------------------
 
 if N == 0:
-    ui.titulo_pagina("Nenhum registro no recorte atual",
-                     "A combinação de filtros não tem chamados. Amplie o intervalo de anos, "
-                     "inclua outra severidade ou use “Limpar filtros” na barra lateral.")
+    with cab:
+        ui.titulo_pagina("Nenhum registro no recorte atual",
+                         "A combinação de filtros não tem chamados. Amplie o intervalo de anos, "
+                         "inclua outra severidade ou use “Limpar filtros” na barra lateral.")
     st.stop()
 
 k, pct_top = dp.concentracao_top(rec, 10)
@@ -104,7 +109,8 @@ if hd.values.sum() > 0:
     partes.append(f"o pico é {dp.DIAS_SEMANA[d_pico].lower()} às {h_pico}h, e "
                   f"{dp.fmt_pct(pct_dia, 0)} dos chamados com hora caem entre 7h e 19h")
 achado = ("; ".join(partes) + ".") if partes else ""
-ui.titulo_pagina(titulo, achado[:1].upper() + achado[1:])
+with cab:
+    ui.titulo_pagina(titulo, achado[:1].upper() + achado[1:])
 
 anos_rec = sorted(rec["ano"].unique())
 datas_rec = rec.loc[~rec["data_fora_do_ano"], "data"]
