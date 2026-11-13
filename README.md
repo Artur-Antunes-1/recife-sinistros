@@ -20,9 +20,14 @@ engenharia de dados. Projeto de portfólio pessoal.
 - Silver persistido em `data/silver/` (CSV por ano + consolidado, não
   versionado) e relatório de qualidade por ano em
   `docs/relatorio_qualidade_silver.md`.
-- Dashboard interativo (`app/dashboard.py`, Streamlit) sobre o silver: ranking
-  e mapa por bairro, série temporal, hora × dia da semana e severidade, com
-  filtros de ano, bairro e severidade. Decisões em ADR-016.
+- Dashboard interativo (`app/dashboard.py`, Streamlit), com três páginas:
+  pontos críticos (ranking e mapa por bairro, série, hora × dia, severidade —
+  ADR-016), previsão de volume elevado por bairro-mês e metodologia. Selo de
+  cobertura em toda página. Documentação do E6 em
+  `docs/entregas/E6_dashboard_consolidado.md`.
+- Classificadores de volume elevado (`src/classificacao/`), porta da avaliação
+  do grupo (`entrega_classificadores/`), com artefatos em `data/classificacao/`
+  e teste de regressão contra os números entregues (ADR-017).
 - Fase 1: conta AWS verificada, com AWS Budget de gasto zero.
 - Fase 2, Estágio 0: Terraform do bucket de state em `terraform/bootstrap/`
   (ADR-011, ADR-012).
@@ -56,7 +61,7 @@ não por necessidade funcional. Ver `docs/decisions.md` (ADR-001).
 
 ## Dashboard
 
-![Visão geral do dashboard](docs/img/dashboard_visao_geral.png)
+![Página de pontos críticos](docs/entregas/prints_E6/01_pontos_criticos.png)
 
 Com o ambiente ativado (`.venv\Scripts\activate`), a partir da raiz do repositório:
 
@@ -65,22 +70,28 @@ pip install -r requirements.txt
 streamlit run app/dashboard.py
 ```
 
-Abre em http://localhost:8501. Pré-requisitos na primeira vez: o silver em
-`data/silver/` (`python src/transform_sinistros.py`) e, para o mapa, a malha de
-bairros em `data/geo/` (`python src/baixa_malha_bairros.py`). Sem a malha o
-painel abre sem o mapa.
+Abre em http://localhost:8501, com três páginas: **Pontos críticos** (só
+chamados FINALIZADA), **Previsão de volume elevado** (classificadores, todos os
+status — os dois recortes são rotulados em cada página, ADR-017) e
+**Metodologia**.
 
-Prints em `docs/img/`: visão geral e um recorte filtrado (Boa Viagem, 2019–2024,
-com vítima e vítima fatal).
+Pré-requisitos na primeira vez: o silver em `data/silver/`
+(`python src/transform_sinistros.py`) e a malha e o cadastro de bairros
+(`python src/baixa_malha_bairros.py`). Sem a malha o painel abre sem os mapas.
+Os artefatos da previsão já vêm versionados em `data/classificacao/`; para
+regerá-los a partir de `data/raw/`: `python src/classificacao/gerar_artefatos.py`.
+
+Prints: `docs/entregas/prints_E6/` (E6, uma por página) e `docs/img/` (E4).
 
 ## Estrutura
 
 ```
-app/    dashboard Streamlit (dashboard.py) e sua camada de dados/tema
-src/    transformação (e, em fases futuras, o handler da Lambda)
+app/    dashboard Streamlit: dashboard.py (navegação), paginas/, dados e tema
+src/    transformação, download de bairros e classificacao/ (classificadores)
+entrega_classificadores/  entrega original do grupo (ZIP, sem os brutos)
 tests/  testes locais (pytest)
 docs/   ROADMAP e decisões de arquitetura (ADRs)
-data/   dados brutos locais (não versionados)
+data/   dados locais (brutos e silver não versionados; classificacao/ versionado)
 ```
 
 ## Como rodar localmente

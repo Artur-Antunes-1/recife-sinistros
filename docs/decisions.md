@@ -188,3 +188,35 @@ Primeira versão do dashboard em `app/dashboard.py` (Streamlit + Plotly), lendo 
 **Fatais em 2015.** A coluna `vitimasfatais` não existe em 2015, mas a severidade existe: o gráfico de fatais inclui 2015 (23 chamados), marcado como ano parcial.
 
 Pendências: normalizar por área ou população do bairro (hoje é contagem absoluta, e o painel avisa); publicar o painel (hoje é local).
+
+ADR-017 — Classificadores integrados ao painel (E6) e dois recortes de base rotulados
+
+**Contexto.** O grupo entregou, fora do repositório, uma avaliação de classificadores que prevê se um bairro-mês terá ≥ 3 chamados. O material está em `entrega_classificadores/` e é o ZIP do grupo sem a pasta intermediária. O painel do E4 usa o silver (só FINALIZADA, ADR-005). Os classificadores usam todos os status. Medido no Passo 0 (13/11/2026), com uma replicação conferida contra as tabelas publicadas no ZIP:
+
+- Silver: 59.006 chamados FINALIZADA. Base dos classificadores: 72.255 chamados, dos quais 59.008 FINALIZADA, 11.563 CANCELADA e 455 DUPLICIDADE. A diferença de 2 FINALIZADA vem da dedup do silver (ADR-015).
+- O alvo usa só 2021–2024, com data válida e bairro com casamento **exato** no cadastro oficial de 94 bairros: 14.033 de 14.396 chamados da janela.
+- O casamento de bairro também diverge. As 5 grafias que o ADR-016 aproveita no painel (BAIRRO DO RECIFE, JOANA BEZERRA, ALTO SANTA TERESINHA, POCO DA PANELA, IPESEP) não casam no classificador.
+- Se o alvo contasse só FINALIZADA, o corte continuaria 3, mas 111 bairro-meses mudariam de classe: 62 no treino, 29 na validação e 20 no teste. Os positivos do teste iriam de 519 para 499. O cálculo é refeito por `tests/test_classificacao.py`.
+
+**Decisão (opção a, escolhida pelo grupo em 13/11/2026).** Manter os dois recortes, cada um rotulado na sua página por um selo de cobertura. As alternativas foram descartadas:
+- **(b) Alinhar tudo a FINALIZADA e retreinar.** Invalidaria todos os números entregues (84,4%, F1 0,845, matriz 473/136/40/479).
+- **(c) Alinhar tudo a todos os status.** Reverteria o ADR-005 (cancelados e duplicados contariam como sinistros) e mudaria os números do E4 (59.006 → 72.255; top-10 de 46,0% para 45,4%).
+
+**Integração.**
+- `src/classificacao/` é uma porta fiel de `preparacao_cttu.py` e `classificacao_cttu.py`, reduzida ao necessário.
+- **Reaproveita** os CSVs de `data/raw/`, que são byte a byte iguais aos do ZIP (SHA-256 conferido contra `manifesto_aquisicao.json`), e a malha de `data/geo/`, também idêntica.
+- **Não reaproveita o silver**: isso mudaria o alvo.
+- O cadastro oficial vai para `data/raw/bairros_oficiais.csv`, baixado por `src/baixa_malha_bairros.py`. O CSV pela URL do recurso é igual ao do ZIP; o "dump" do datastore vem em outro formato e não serve.
+- `python src/classificacao/gerar_artefatos.py` grava `data/classificacao/`. Esses artefatos são versionados, como o relatório de qualidade, porque são o resultado oficial que painel e docs citam.
+- O dashboard só lê os artefatos e nunca treina.
+
+**Regressão.** Rodando em Python 3.14, pandas 3.0.5 e scikit-learn 1.9.1 (a entrega usou Python 3.12, pandas 2.2.3 e scikit-learn 1.8.0), a logística no teste reproduz os números entregues: 84,4% / 77,9% / 92,3% / F1 0,845 / AUC 0,945 / AP 0,940 / 473-136-40-479. Métricas, limiares, partições, métricas mensais e bootstrap são **idênticos** às tabelas do ZIP. As predições batem e os scores diferem em menos de 1e-12. Limiares, modelo e partições seguem fixados; o limiar exploratório da página não altera a tabela oficial.
+
+**Achados sobre a entrega do ZIP.**
+- `dados/chamados_tratados.csv.gz` está truncado: o CRC do ZIP confere e só 53.991 linhas descomprimem. Não é usado, porque é regenerável.
+- O `requirements.txt` da entrega pede `pandas<3`; o painel roda em pandas 3 sem diferença nos resultados.
+
+**Consequências.**
+- Os números das duas páginas não se somam nem se comparam diretamente, e o painel diz isso.
+- Na previsão, "Recife", "Ilha Joana Bezerra", "Alto Santa Terezinha", "Poco" e "Ipsep" contam só os chamados com o nome exato do cadastro.
+- Ao abrir uma subpágina direto pela URL, o frontend do Streamlit registra 404 em `/<página>/_stcore/health` e `/<página>/_stcore/host-config`. O app não gera esses pedidos e funciona normalmente. Inferência: é o frontend testando caminhos-base.

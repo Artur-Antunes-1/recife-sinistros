@@ -62,6 +62,7 @@ Fase 6 — Análise (o payoff de "dados")
  Consultar o silver
  Agregação por bairro (sem geocoding — ver decisão ADR-008)
  Dashboard local (Entregável 4, 30/10/2026): app/dashboard.py em Streamlit lendo o silver — ranking e mapa por bairro, série, hora × dia, severidade, filtros. Casamento de bairro com a malha oficial: 3/97 grafias sem polígono após de-para explícito de 5 nomes (ver ADR-016). Adiantado em relação à ordem das fases por prazo da disciplina; não depende da AWS.
+ Dashboard consolidado (Entregável 6, 13/11/2026): classificadores do grupo integrados como src/classificacao/ (regressão reproduz a avaliação entregue), painel multipágina (pontos críticos, previsão, metodologia) com selo de cobertura. Dois recortes rotulados: FINALIZADA nos pontos críticos, todos os status na previsão (ADR-017). Doc: docs/entregas/E6_dashboard_consolidado.md.
 Fase 7 — Polimento de portfólio
  README com diagrama de arquitetura
  ADRs revisados (docs/decisions.md)
@@ -71,6 +72,7 @@ Pendências conhecidas (não esquecer)
 Granularidade de tipo_sinistro: 2024 é fino, 2015 é grosso. Se quiser comparar espécie entre anos, precisa de uma tabela de-para. Em aberto.
 vitimas cru: o dicionário oficial contradiz o dado de 2015; não derivamos "total de vítimas". Ver ADR-007.
 Bairro: recuperar os vazios (148 em 2019) a partir do texto do endereço foi avaliado e NÃO aplicado — só 12/145 (8%) casaram por substring simples, com falso-positivo claro. Precisaria de uma base de ruas real. Em aberto.
+Previsão: o casamento de bairro dos classificadores é exato (sem o de-para do ADR-016) e a base usa todos os status. Unificar exigiria nova avaliação (ADR-017). Em aberto.
 Bairro: o dashboard aplica um de-para de 5 grafias SÓ na camada de apresentação (ADR-016); o silver continua sem ele. Decidir se esse de-para sobe para o silver.
 Bairro: ~4 variações de nome residuais após normalizar acento (ex.: "IPESEP" vs "IPSEP", "JOANA BEZERRA" vs "ILHA JOANA BEZERRA") não são acento — não corrigidas por exigirem julgamento, não regra determinística. Em aberto.
 Papel no Projeto 5e6 (CESAR): se/como este projeto absorve a camada de deploy AWS daquela disciplina — ainda em aberto.
