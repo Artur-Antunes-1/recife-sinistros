@@ -157,3 +157,19 @@ def test_regenerar_a_partir_de_data_raw_reproduz_os_artefatos(tmp_path):
         pd.testing.assert_frame_equal(a, v, check_dtype=False, atol=1e-9, rtol=0)
     assert json.loads((tmp_path / "cobertura.json").read_text(encoding="utf-8")) == \
         json.loads((ARTEFATOS / "cobertura.json").read_text(encoding="utf-8"))
+
+
+@pytest.mark.skipif(not _pode_regenerar(), reason="precisa de data/raw/, cadastro e scikit-learn")
+def test_alinhar_a_finalizada_mudaria_111_rotulos():
+    """Número citado no ADR-017 (decisão do Passo 0, opção a): se o alvo
+    contasse só FINALIZADA, 62 + 29 + 20 = 111 bairro-meses mudariam de classe.
+    Recalculado aqui com a MESMA função do painel, para o número não ser de memória."""
+    from classificacao import modelos
+    base = preparacao.preparar()
+    bairros = preparacao.bairros_oficiais()
+    todos, corte_t = modelos.painel_mensal(base, bairros)
+    fin, corte_f = modelos.painel_mensal(base[base["situacao_chave"] == "FINALIZADA"], bairros)
+    assert corte_t == corte_f == 3
+    m = todos.merge(fin, on=["bairro", "periodo"], suffixes=("", "_fin"))
+    mudam = (m["alvo"] != m["alvo_fin"]).groupby(m["particao"]).sum().to_dict()
+    assert mudam == {"treino": 62, "validacao": 29, "teste": 20}
