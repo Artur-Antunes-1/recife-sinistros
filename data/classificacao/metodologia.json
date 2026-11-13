@@ -1,0 +1,45 @@
+{
+  "classe_positiva": "Bairro-mês com pelo menos 3 chamados datados e com bairro validado",
+  "corte_contagem": 3,
+  "quantil_treino": 0.75,
+  "modelo_selecionado": "logistica",
+  "limiares": {
+    "dummy": 0.5,
+    "persistencia": 0.5,
+    "logistica": 0.16,
+    "arvore": 0.35
+  },
+  "hiperparametros": {
+    "logistica": {
+      "C": 1,
+      "max_iter": 2000
+    },
+    "arvore": {
+      "max_depth": 4,
+      "min_samples_leaf": 30
+    }
+  },
+  "treino": "2021-07 a 2022-12",
+  "validacao": "2023-01 a 2023-12",
+  "teste": "2024-01 a 2024-12",
+  "passo_previsao": "Ao fim de t-1, prever o bairro-mês t; avaliação sequencial de um passo com histórico observado.",
+  "treinamento": "Treino somente até dez/2022; não reajustado em 2023 ou 2024.",
+  "limiar_selecao": "F1 em validação 2023; desempate por recall, depois maior limiar.",
+  "observacao_score": "Scores não calibrados; persistência é índice monotônico, não probabilidade.",
+  "bairro_meses": 3948,
+  "n_bairros": 94,
+  "num_features": [
+    "lag1",
+    "lag2",
+    "lag3",
+    "lag6",
+    "media3",
+    "media6",
+    "dp6",
+    "tendencia",
+    "mes_sin",
+    "mes_cos"
+  ],
+  "seed": 42,
+  "data_obtencao": "2026-11-04"
+}

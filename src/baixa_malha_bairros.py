@@ -1,14 +1,24 @@
 """
 baixa_malha_bairros.py
 ----------------------
-Baixa a malha de bairros do Recife (GeoJSON) usada pelo mapa do dashboard.
+Baixa os dois arquivos de referência de bairros do Recife:
 
-Fonte: Portal de Dados Abertos do Recife, dataset "Área urbana", recurso
-"Bairros do Recife" (licença ODbL). Grava em data/geo/, que não é versionado
-(mesma lógica de data/raw/: é baixável do portal).
+  - a malha (GeoJSON) usada pelos mapas do dashboard -> data/geo/
+  - o cadastro oficial dos 94 bairros (CSV) usado pelos classificadores para
+    validar o bairro de cada chamado (ADR-017) -> data/raw/bairros_oficiais.csv
 
-O ID do recurso é buscado pela API do CKAN a cada execução, e não fixado numa
-URL de download: os IDs do portal mudam (ver data/README.md).
+Fonte: Portal de Dados Abertos do Recife, dataset "Área urbana", recursos
+"Bairros do Recife" (GeoJSON) e "Bairros e RPAs do Recife" (CSV), licença
+ODbL. Nenhum dos dois é versionado (mesma lógica de data/raw/: é baixável do
+portal).
+
+O ID de cada recurso é buscado pela API do CKAN a cada execução, e não fixado
+numa URL de download: os IDs do portal mudam (ver data/README.md).
+
+Conferido em 13/11/2026: o CSV baixado pela URL do recurso é byte a byte igual
+ao snapshot usado na avaliação dos classificadores
+(entrega_classificadores/dados/brutos/bairros_oficiais.csv). O "dump" do
+datastore NÃO serve: vem com outro separador e uma coluna _id a mais.
 
 Rodar a partir da raiz do repositório:
     python src/baixa_malha_bairros.py
@@ -21,28 +31,46 @@ import urllib.request
 from pathlib import Path
 
 API = "https://dados.recife.pe.gov.br/api/3/action/package_show?id=area-urbana"
-NOME_RECURSO = "Bairros do Recife"
-DESTINO = Path(__file__).resolve().parent.parent / "data" / "geo" / "bairros-do-recife.geojson"
+RAIZ = Path(__file__).resolve().parent.parent
+
+# (nome do recurso no portal, formato, destino local)
+RECURSOS = [
+    ("Bairros do Recife", "geojson", RAIZ / "data" / "geo" / "bairros-do-recife.geojson"),
+    ("Bairros e RPAs do Recife", "csv", RAIZ / "data" / "raw" / "bairros_oficiais.csv"),
+]
 
 
-def url_do_recurso() -> str:
+def urls_dos_recursos() -> dict[tuple[str, str], str]:
     with urllib.request.urlopen(API, timeout=60) as r:
         pacote = json.load(r)["result"]
-    for rec in pacote["resources"]:
-        if rec.get("name") == NOME_RECURSO and rec.get("format", "").lower() == "geojson":
-            return rec["url"]
-    # Falha alto: melhor que baixar o recurso errado em silêncio.
-    raise RuntimeError(f"Recurso GeoJSON '{NOME_RECURSO}' não encontrado no dataset area-urbana.")
+    return {(rec.get("name"), rec.get("format", "").lower()): rec["url"]
+            for rec in pacote["resources"]}
+
+
+def _valida(conteudo: bytes, formato: str) -> str:
+    """Confere o conteúdo antes de gravar e devolve um resumo para o log."""
+    if formato == "geojson":
+        return f"{len(json.loads(conteudo)['features'])} bairros"
+    linhas = conteudo.decode("utf-8-sig").splitlines()
+    # Cabeçalho esperado: "Bairro";"rpa". Falha alto se o portal mudar o layout.
+    if "bairro" not in linhas[0].lower():
+        raise RuntimeError(f"Cadastro de bairros com cabeçalho inesperado: {linhas[0]!r}")
+    return f"{len(linhas) - 1} bairros"
 
 
 def main():
-    url = url_do_recurso()
-    DESTINO.parent.mkdir(parents=True, exist_ok=True)
-    with urllib.request.urlopen(url, timeout=120) as r:
-        conteudo = r.read()
-    n = len(json.loads(conteudo)["features"])  # valida que é GeoJSON antes de gravar
-    DESTINO.write_bytes(conteudo)
-    print(f"{n} bairros gravados em {DESTINO} ({len(conteudo) / 1e6:.1f} MB)")
+    urls = urls_dos_recursos()
+    for nome, formato, destino in RECURSOS:
+        url = urls.get((nome, formato))
+        if url is None:
+            # Falha alto: melhor que baixar o recurso errado em silêncio.
+            raise RuntimeError(f"Recurso '{nome}' ({formato}) não encontrado no dataset area-urbana.")
+        with urllib.request.urlopen(url, timeout=120) as r:
+            conteudo = r.read()
+        resumo = _valida(conteudo, formato)
+        destino.parent.mkdir(parents=True, exist_ok=True)
+        destino.write_bytes(conteudo)
+        print(f"{resumo} gravados em {destino} ({len(conteudo) / 1e6:.2f} MB)")
 
 
 if __name__ == "__main__":

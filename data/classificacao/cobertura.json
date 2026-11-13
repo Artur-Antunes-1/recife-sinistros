@@ -1,0 +1,27 @@
+{
+  "registros": 72255,
+  "status": "todos os status (inclui CANCELADA, DUPLICIDADE etc.)",
+  "finalizada": 59008,
+  "anos": [
+    2015,
+    2024
+  ],
+  "janela_modelo_anos": [
+    2021,
+    2024
+  ],
+  "registros_janela_modelo": 14396,
+  "registros_no_alvo": 14033,
+  "registros_janela_bairro_nao_validado": 328,
+  "registros_janela_data_invalida": 36,
+  "bairro_meses": 3948,
+  "corte_contagem": 3,
+  "primeira_data_2015": "2015-06-01",
+  "ultima_data_2024": "2024-12-28",
+  "datas_outro_ano_2024": 36,
+  "horas_validas_2022": 0,
+  "anos_sem_vitimasfatais_conhecidas": [
+    2015
+  ],
+  "primeiro_ano_vitimasfatais_completas": 2021
+}
