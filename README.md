@@ -56,22 +56,21 @@ não por necessidade funcional. Ver `docs/decisions.md` (ADR-001).
 
 ## Dashboard
 
-![Visão geral do dashboard](docs/img/dashboard_visao_geral.png)
+[Entrega CC de Projeto 5 · 18/11/2026](docs/entrega-cc.md)
 
-Com o ambiente ativado (`.venv\Scripts\activate`), a partir da raiz do repositório:
+Na raiz do repositório, com o ambiente virtual ativo:
 
 ```powershell
-pip install -r requirements.txt
-streamlit run app/dashboard.py
+python -m pip install -r requirements.txt
+python -m streamlit run app/dashboard.py
 ```
 
-Abre em http://localhost:8501. Pré-requisitos na primeira vez: o silver em
-`data/silver/` (`python src/transform_sinistros.py`) e, para o mapa, a malha de
-bairros em `data/geo/` (`python src/baixa_malha_bairros.py`). Sem a malha o
-painel abre sem o mapa.
+O painel abre em [localhost:8501](http://localhost:8501). A base de 2015–2024
+e a malha acompanham a entrega em `data/painel/`. O painel também aceita o
+silver e a malha locais quando esses arquivos estão disponíveis. Veja
+[como reproduzir a base](data/README.md).
 
-Prints em `docs/img/`: visão geral e um recorte filtrado (Boa Viagem, 2019–2024,
-com vítima e vítima fatal).
+As capturas da versão inicial ficam em `docs/img/`.
 
 ## Estrutura
 
