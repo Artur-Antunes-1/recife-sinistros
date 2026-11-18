@@ -4,6 +4,8 @@
 
 ## Abrir o dashboard
 
+[Acesse o dashboard público no Streamlit](https://recife-sinistros-cttu.streamlit.app/). O acesso é livre, sem login.
+
 Na raiz do repositório, com o ambiente Python ativo, instale as dependências e abra o painel.
 
 ```powershell

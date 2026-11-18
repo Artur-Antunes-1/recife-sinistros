@@ -1,5 +1,7 @@
 # Plataforma Serverless de Sinistros de Trânsito — Recife (CTTU)
 
+[Abrir o dashboard público no Streamlit](https://recife-sinistros-cttu.streamlit.app/)
+
 > **Status: em construção (Fase 2 de 7).** Este README descreve o estado real
 > do projeto, sem inflar o que ainda não existe. Ver `docs/ROADMAP.md` —
 > é a fonte da verdade sobre em que fase estamos.
