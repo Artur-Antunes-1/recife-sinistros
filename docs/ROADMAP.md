@@ -62,6 +62,7 @@ Fase 6 — Análise (o payoff de "dados")
  Consultar o silver
  Agregação por bairro (sem geocoding — ver decisão ADR-008)
  Dashboard local (Entregável 4, 30/10/2026): app/dashboard.py em Streamlit lendo o silver — ranking e mapa por bairro, série, hora × dia, severidade, filtros. Casamento de bairro com a malha oficial: 3/97 grafias sem polígono após de-para explícito de 5 nomes (ver ADR-016). Adiantado em relação à ordem das fases por prazo da disciplina; não depende da AWS.
+ Entrega CC (18/11/2026): painel Streamlit consolidado com base de apresentação e malha distribuídas no repositório. Veja [a entrega de Projeto 5](entrega-cc.md).
 Fase 7 — Polimento de portfólio
  README com diagrama de arquitetura
  ADRs revisados (docs/decisions.md)

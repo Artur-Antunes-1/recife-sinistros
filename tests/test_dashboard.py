@@ -44,7 +44,7 @@ def _df_sintetico():
     df["data"] = pd.to_datetime(df["ano"].astype(str) + "-03-01")
     df["data_fora_do_ano"] = False
     df["hora_int"] = pd.array([8, 8, None, 17, 17], dtype="Int64")
-    df["dia_semana"] = df["data"].dt.dayofweek
+    df["dia_semana"] = df["data"].dt.day_of_week
     return df
 
 
@@ -86,6 +86,15 @@ def test_hora_dia_conta_quem_nao_tem_hora():
     assert int(m.values.sum()) == 4
 
 
+def test_hora_dia_contabiliza_horario_invalido_e_data_fora_do_ano():
+    df = _df_sintetico()
+    df.loc[0, "hora_int"] = 24
+    df.loc[1, "data_fora_do_ano"] = True
+    m, fora = dp.hora_dia(df)
+    assert fora == 3
+    assert int(m.values.sum()) + fora == len(df)
+
+
 def test_contraste_wcag_conhecido():
     assert tema.contraste("#000000", "#FFFFFF") == pytest.approx(21.0)
     assert tema.contraste("#777777", "#FFFFFF") == pytest.approx(4.48, abs=0.01)
@@ -93,8 +102,8 @@ def test_contraste_wcag_conhecido():
 
 # --- App inteiro (precisa do silver real) -------------------------------------
 
-requer_silver = pytest.mark.skipif(not dp.CAMINHO_SILVER.exists(),
-                                   reason="silver não gerado (rode src/transform_sinistros.py)")
+requer_silver = pytest.mark.skipif(not dp.caminho_silver().is_file(),
+                                   reason="silver ou base distribuída do painel ausente")
 
 # Linhas silver por ano, de docs/relatorio_qualidade_silver.md.
 SILVER_POR_ANO = {2015: 5175, 2016: 8519, 2017: 9223, 2018: 9494, 2019: 10109,
@@ -127,6 +136,17 @@ def test_silver_bate_com_relatorio_de_qualidade():
     df = dp.carrega_silver()
     assert len(df) == 59006
     assert df.groupby("ano").size().to_dict() == SILVER_POR_ANO
+
+
+def test_base_distribuida_cobre_graficos_em_um_clone_limpo():
+    malha = dp.carrega_malha(dp.MALHA_PAINEL)
+    chaves = {f["properties"]["chave"] for f in malha["features"]}
+    df, _ = dp.casa_bairros(dp.carrega_silver(dp.CSV_PAINEL), chaves)
+    assert len(chaves) == 94
+    assert df.groupby("ano").size().to_dict() == SILVER_POR_ANO
+    assert dp.cobertura_geo(df)["no_mapa"] == 58752
+    calor, fora = dp.hora_dia(df)
+    assert (int(calor.values.sum()), fora) == (56535, 2471)
 
 
 @requer_silver
@@ -204,4 +224,4 @@ def test_app_nao_afirma_queda_quando_o_recorte_sobe():
         a.multiselect(key="f_sev").set_value(["COM VÍTIMA", "VÍTIMA FATAL"])
     at = _app(ajuste)
     titulos = [m.value for m in at.markdown if 'class="ch-t"' in m.value and "2019 a 2021" in m.value]
-    assert titulos and all("Os registros caem" not in x for x in titulos), titulos
+    assert titulos and "Os registros passaram de 180 para 186" in titulos[0], titulos

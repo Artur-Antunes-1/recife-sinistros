@@ -18,6 +18,7 @@ Regras de honestidade que este módulo garante (ver ADR-016):
 
 from __future__ import annotations
 
+import gzip
 import json
 import re
 import unicodedata
@@ -31,6 +32,10 @@ import pandas as pd
 RAIZ = Path(__file__).resolve().parent.parent
 CAMINHO_SILVER = RAIZ / "data" / "silver" / "sinistros_consolidado.csv"
 CAMINHO_MALHA = RAIZ / "data" / "geo" / "bairros-do-recife.geojson"
+PASTA_PAINEL = RAIZ / "data" / "painel"
+CSV_PAINEL = PASTA_PAINEL / "sinistros.csv.gz"
+MALHA_PAINEL = PASTA_PAINEL / "bairros.geojson.gz"
+FONTES_PAINEL = PASTA_PAINEL / "fontes.json"
 PASTA_RAW = RAIZ / "data" / "raw"
 
 BAIRRO_NAO_INFORMADO = "NÃO INFORMADO"
@@ -79,31 +84,42 @@ def nome_exibicao(v: str) -> str:
 
 # --- Leitura ---------------------------------------------------------------
 
-def carrega_silver(caminho: Path = CAMINHO_SILVER) -> pd.DataFrame:
-    """Lê o silver consolidado e deriva as colunas que o painel usa.
+def caminho_silver() -> Path:
+    return CAMINHO_SILVER if CAMINHO_SILVER.is_file() else CSV_PAINEL
+
+
+def caminho_malha() -> Path:
+    return CAMINHO_MALHA if CAMINHO_MALHA.is_file() else MALHA_PAINEL
+
+
+def carrega_silver(caminho: Path | None = None) -> pd.DataFrame:
+    """Lê o silver local ou sua projeção distribuída junto ao painel.
 
     Não descarta nenhuma linha: o total tem que bater com o relatório de
     qualidade (59.006 linhas em 20/10/2026)."""
-    df = pd.read_csv(caminho, sep=";", dtype=str, keep_default_na=False,
+    df = pd.read_csv(caminho or caminho_silver(), sep=";", dtype=str, keep_default_na=False,
                      encoding="utf-8")
     df["ano"] = df["ano"].astype(int)
     df["data"] = pd.to_datetime(df["data"], errors="coerce")
     df["data_fora_do_ano"] = df["data_fora_do_ano"] == "True"
     # Hora vazia (2022 inteiro, e algumas linhas de 2016-2019) vira NA, não 0h.
     df["hora_int"] = pd.to_numeric(df["hora"].str[:2], errors="coerce").astype("Int64")
-    df["dia_semana"] = df["data"].dt.dayofweek  # 0 = segunda
+    df["dia_semana"] = df["data"].dt.day_of_week  # 0 = segunda
     return df
 
 
-def carrega_malha(caminho: Path = CAMINHO_MALHA) -> dict | None:
+def carrega_malha(caminho: Path | None = None) -> dict | None:
     """Lê o GeoJSON de bairros e grava em cada feição a chave normalizada
     ('chave'). Devolve None se o arquivo não existir — o painel segue sem mapa.
 
     A chave vem de EBAIRRNOME (caixa alta, sem acento). EBAIRRNOMEOF não é
     usada: no arquivo do portal ela vem com o acento corrompido (U+FFFD)."""
-    if not caminho.exists():
+    caminho = caminho or caminho_malha()
+    if not caminho.is_file():
         return None
-    malha = json.loads(caminho.read_text(encoding="utf-8"))
+    abrir = gzip.open if caminho.suffix == ".gz" else open
+    with abrir(caminho, "rt", encoding="utf-8") as arquivo:
+        malha = json.load(arquivo)
     for f in malha["features"]:
         f["properties"] = {"chave": normaliza_nome(f["properties"]["EBAIRRNOME"])}
         f["geometry"] = _arredonda_geometria(f["geometry"])
@@ -149,8 +165,8 @@ def casa_bairros(df: pd.DataFrame, chaves_malha: set[str] | None) -> tuple[pd.Da
                 .agg(lambda s: s.value_counts().index[0]))
     exib = df["bairro_chave"].map(grafia).map(nome_exibicao, na_action="ignore")
     # Linhas fora da malha mantêm o nome do silver (aparecem no filtro).
-    df["bairro_painel"] = exib.fillna(df["bairro"].where(~informado,
-                                      df["bairro"].map(nome_exibicao)))
+    df["bairro_painel"] = exib.astype("string").fillna(
+        df["bairro"].where(~informado, df["bairro"].map(nome_exibicao)))
 
     rel = {"linhas": len(df), "nao_informado": int((~informado).sum())}
     if chaves_malha is not None:
@@ -230,8 +246,9 @@ def por_mes(rec: pd.DataFrame) -> pd.Series:
 
 def hora_dia(rec: pd.DataFrame) -> tuple[pd.DataFrame, int]:
     """Matriz 7x24 (dia da semana x hora) e quantos registros ficaram de fora
-    por não terem hora."""
-    ok = rec[rec["hora_int"].notna() & rec["dia_semana"].notna()]
+    por terem hora ou data inválida."""
+    ok = rec[rec["hora_int"].between(0, 23) & rec["dia_semana"].notna()
+             & ~rec["data_fora_do_ano"]]
     m = (ok.groupby([ok["dia_semana"].astype(int), ok["hora_int"].astype(int)])
            .size().unstack(fill_value=0)
            .reindex(index=range(7), columns=range(24), fill_value=0))
@@ -245,10 +262,6 @@ def severidade_por_ano(rec: pd.DataFrame) -> pd.DataFrame:
 
 
 # --- Metadados para o rodapé ---------------------------------------------------
-
-def data_arquivo(caminho: Path) -> pd.Timestamp | None:
-    return pd.Timestamp(caminho.stat().st_mtime, unit="s") if caminho.exists() else None
-
 
 def data_download_raw(pasta: Path = PASTA_RAW) -> pd.Timestamp | None:
     """Data dos CSVs brutos em data/raw/ (a mais antiga). É a data em que os
