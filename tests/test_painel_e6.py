@@ -19,7 +19,8 @@ import dados_previsao as dprev
 
 ART = dprev.carrega_artefatos()
 requer_art = pytest.mark.skipif(ART is None, reason="data/classificacao/ ausente")
-requer_silver = pytest.mark.skipif(not dp.CAMINHO_SILVER.exists(), reason="silver não gerado")
+requer_silver = pytest.mark.skipif(not dp.caminho_silver().is_file(),
+                                   reason="base do painel (data/painel/) ou silver ausente")
 
 
 def _pred():

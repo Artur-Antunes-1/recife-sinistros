@@ -1,0 +1,66 @@
+{
+  "data_extracao": "2026-11-18",
+  "fontes": {
+    "sinistros": "https://dados.recife.pe.gov.br/dataset/acidentes-de-transito-com-e-sem-vitimas",
+    "bairros": "https://dados.recife.pe.gov.br/dataset/area-urbana"
+  },
+  "licenca": {
+    "nome": "Open Database License (ODbL) 1.0",
+    "url": "https://opendatacommons.org/licenses/odbl/1-0/"
+  },
+  "atribuicao": "CTTU e Prefeitura do Recife, Portal de Dados Abertos do Recife.",
+  "registros_por_ano": {
+    "2015": 5175,
+    "2016": 8519,
+    "2017": 9223,
+    "2018": 9494,
+    "2019": 10109,
+    "2020": 3496,
+    "2021": 2095,
+    "2022": 2391,
+    "2023": 3575,
+    "2024": 4929
+  },
+  "linhas_brutas_por_ano": {
+    "2015": 7273,
+    "2016": 11263,
+    "2017": 11758,
+    "2018": 11411,
+    "2019": 12062,
+    "2020": 4092,
+    "2021": 2380,
+    "2022": 2669,
+    "2023": 4032,
+    "2024": 5315
+  },
+  "quantidade_bairros": 94,
+  "rotulos_bairro_neutralizados": 2,
+  "horarios_invalidos_neutralizados": 4,
+  "colunas_publicadas": [
+    "ano",
+    "data",
+    "data_fora_do_ano",
+    "hora",
+    "severidade",
+    "bairro",
+    "bairro_original",
+    "vitimasfatais"
+  ],
+  "sha256_entradas": {
+    "acidentes-de-transito-2015.csv": "19fd6bb6d2ec489daa0e74ee0554dcb0a6295cdaa0a0321361382c8f1c8afb01",
+    "acidentes-de-transito-2016.csv": "3750d56981f264081ff7367b7357eaff42684c2b1f46a6be3751ada1c21f0261",
+    "acidentes-de-transito-2017.csv": "b702af18392f6ed038c7b0914e8077c05384aa349c984d11850fb8bc2444969b",
+    "acidentes-de-transito-2018.csv": "cb5442d7d550ca127f7f3e8e2be50264479df228bdcefbf6687aacad1126fecc",
+    "acidentes-de-transito-2019.csv": "e4f2f2c7b8d2ed3cd507e920e7137ff9a57a376f70cfeb68a9e3af1cf5602d18",
+    "acidentes-de-transito-2020.csv": "54046149f0fdf7b59c05ea470ab943e3a2debc478fa1c2c30679edc4a2190e76",
+    "acidentes-de-transito-2021.csv": "a3d2951526ef37ac88a52fefabfc7f20b2c65e311698fb607491f61b122761cb",
+    "acidentes-de-transito-2022.csv": "b63341fc83ee98065f95498b75a8f118cd66aadbfdc8274a80842bca14c1b9b9",
+    "acidentes-de-transito-2023.csv": "b7b799697908ea894e9c22709155d54586dbf77460ff1c123795db9032687846",
+    "acidentes-de-transito-2024.csv": "375766319e81ba147f40d013c9706abfc91f9017ffa23277533cd23bf0e0d6bd",
+    "bairros-do-recife.geojson": "2099e5d6a7087596f90f47722c7a89930d7631e7b541db41c1baaee1980ef91a"
+  },
+  "sha256_pacote": {
+    "sinistros.csv.gz": "f36ff559fabdf3430f1c4eb6d019baf035e35b61796c068a020637e934bae77b",
+    "bairros.geojson.gz": "17fa8ecd43244f6950f03169215f3d032b2a5e5ecc5626909a6459eb4facff0a"
+  }
+}

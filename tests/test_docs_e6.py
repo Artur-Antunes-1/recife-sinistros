@@ -20,7 +20,8 @@ RAIZ = Path(__file__).resolve().parent.parent
 DOC = (RAIZ / "docs" / "entregas" / "E6_dashboard_consolidado.md").read_text(encoding="utf-8")
 ADR = (RAIZ / "docs" / "decisions.md").read_text(encoding="utf-8").split("ADR-017")[1]
 
-requer_silver = pytest.mark.skipif(not dp.CAMINHO_SILVER.exists(), reason="silver não gerado")
+requer_silver = pytest.mark.skipif(not dp.caminho_silver().is_file(),
+                                   reason="base do painel (data/painel/) ou silver ausente")
 f3 = lambda v: f"{v:.3f}".replace(".", ",")  # noqa: E731
 
 
@@ -128,3 +129,45 @@ def test_contagens_por_status_citadas_no_doc_e_no_adr():
               dp.fmt_int(st["DUPLICIDADE"]), dp.fmt_int(int(janela.sum()))]:
         assert v in ADR, v
     assert f"{dp.fmt_int(st['CANCELADA'])} CANCELADA e {dp.fmt_int(st['DUPLICIDADE'])} DUPLICIDADE" in DOC
+
+
+@requer_silver
+def test_errata_do_pico_835_para_833():
+    """A errata do E6 (ADR-018): a regra antiga do mapa de calor contava as
+    datas de outro ano e perdia 1 hora inválida. Recalcula as duas regras."""
+    df = dp.carrega_silver()
+    antiga = df[df["hora_int"].notna() & df["dia_semana"].notna()]
+    m_antiga = (antiga.groupby([antiga["dia_semana"].astype(int), antiga["hora_int"].astype(int)])
+                .size().unstack(fill_value=0).reindex(index=range(7), columns=range(24), fill_value=0))
+    m_nova, fora = dp.hora_dia(df)
+    fora_ano = df[df["data_fora_do_ano"]]
+    assert (m_antiga.iat[1, 8], m_nova.iat[1, 8]) == (835, 833)
+    assert int(m_nova.values.sum()) + fora == len(df)
+    errata = DOC.split("**Errata")[1].split("## Como rodar")[0]
+    assert "835" in errata and "**833**" in errata
+    assert f"contava {len(fora_ano)} chamados com data de outro ano" in errata
+    assert f"dos quais {int(((fora_ano['dia_semana'] == 1) & (fora_ano['hora_int'] == 8)).sum())} caem" in errata
+    # Hora fora de 0-23: nem na matriz nem no "fora". Só existe no silver: a base de
+    # data/painel/ já neutraliza horários inválidos (fontes.json). O 835 saiu do silver.
+    if not dp.CAMINHO_SILVER.is_file():
+        pytest.skip("silver local ausente: a hora inválida só existe nele")
+    sv = dp.carrega_silver(dp.CAMINHO_SILVER)
+    sv_ok = sv[sv["hora_int"].notna() & sv["dia_semana"].notna()]
+    perdidas = int((~sv_ok["hora_int"].between(0, 23)).sum())
+    assert f"perdia sem contar {perdidas} chamado" in errata
+
+
+@requer_silver
+def test_numeros_da_entrega_cc_continuam_valendo():
+    """docs/entrega-cc.md (versão de 18/11) usa a mesma regra adotada no merge."""
+    cc = (RAIZ / "docs" / "entrega-cc.md").read_text(encoding="utf-8")
+    malha = dp.carrega_malha()
+    df, _ = dp.casa_bairros(dp.carrega_silver(), {f["properties"]["chave"] for f in malha["features"]})
+    m, fora = dp.hora_dia(df)
+    cob = dp.cobertura_geo(df)
+    for v in [dp.fmt_int(len(df)), dp.fmt_int(cob["no_mapa"]), dp.fmt_int(int(m.values.sum())),
+              f"**{dp.fmt_int(m.iat[1, 8])} chamados**", dp.fmt_int(cob["fora"]),
+              f"{int(df['data_fora_do_ano'].sum())} datas incompatíveis",
+              dp.fmt_int(int((df["severidade"] == "VÍTIMA FATAL").sum()))]:
+        assert v in cc, v
+    assert "E6_dashboard_consolidado.md" in cc.split("## Abrir o dashboard")[0]  # nota no topo

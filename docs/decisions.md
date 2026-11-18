@@ -220,3 +220,39 @@ ADR-017 — Classificadores integrados ao painel (E6) e dois recortes de base ro
 - Os números das duas páginas não se somam nem se comparam diretamente, e o painel diz isso.
 - Na previsão, "Recife", "Ilha Joana Bezerra", "Alto Santa Terezinha", "Poco" e "Ipsep" contam só os chamados com o nome exato do cadastro.
 - Ao abrir uma subpágina direto pela URL, o frontend do Streamlit registra 404 em `/<página>/_stcore/health` e `/<página>/_stcore/host-config`. O app não gera esses pedidos e funciona normalmente. Inferência: é o frontend testando caminhos-base.
+
+ADR-018 — Merge do Ciclo 6 com a versão de página única (entrega CC de 18/11): carregamento, regra do mapa de calor e base empacotada
+
+**Contexto.** O `master` local tinha os 8 commits do Ciclo 6 (painel multipágina, classificadores, ADR-017). O `origin/master` tinha o commit `d7222fc` do Artur, que partiu do estado do Ciclo 4 (`3f2d684`) e já foi apresentado na entrega CC: base empacotada em `data/painel/`, `src/prepara_dados_painel.py`, adaptação a celular e regra nova para o mapa de calor. Juntados por `git merge` (sem rebase nem force), com backups em `backup/ciclo6-local` e `backup/origin-artur`.
+
+**1. Carregamento (estratégia única).** A página de pontos críticos lê `data/painel/sinistros.csv.gz` e `data/painel/bairros.geojson.gz` quando existem; se não existirem, cai para o silver local (`data/silver/`) e a malha de `data/geo/`. A previsão lê `data/classificacao/`. Os três diretórios são versionados, então uma cópia limpa (e o Streamlit Community Cloud) abre as três páginas sem rodar pipeline. A base empacotada vem primeiro porque é o que todo ambiente enxerga: o painel mostra os mesmos números em qualquer máquina. As contagens são idênticas às do silver (59.006; mesmo total por ano). O Artur usava a ordem inversa (silver primeiro); a ordem foi trocada por decisão do grupo no merge.
+
+**2. Regra do mapa de calor.** Vale a regra da versão de 18/11. Entram só chamados com hora entre 0 e 23 **e** data no ano do arquivo; o resto é contado em "fora". Motivos:
+- É coerente com a série mensal, que já exclui as 32 datas de outro ano (dez/2025) por não serem confiáveis. Se a data não é confiável, o dia da semana também não é.
+- Fecha a conta: matriz + fora = total. A regra antiga do Ciclo 6 perdia 1 chamado do silver com hora `"29208:00"` (hora 29), que não entrava na matriz nem no "fora".
+
+Efeito, medido: a base do mapa de calor vai de 56.567 para 56.535 e o pico de terça às 8h de 835 para 833. Os 75% entre 7h e 19h não mudam. O E6 ganhou uma errata, porque o relatório de 13/11 (`docs/entregas/Relatorio_Ciclo6_G15.pdf`) cita 835. A `docs/entrega-cc.md` já usava 833.
+
+As "32" e as "36" datas de outro ano não são divergência: são 32 no recorte FINALIZADA e 36 em todos os status (32 + 2 CANCELADA + 2 DUPLICIDADE). Cada página mostra a do seu recorte.
+
+**3. Base empacotada com uma coluna a mais.** A página de pontos críticos do Ciclo 6 mostra o preenchimento de `vitimasfatais` por ano, e a base do Artur não tinha a coluna. `src/prepara_dados_painel.py` passou a publicar `vitimasfatais`, com vazio = desconhecido (ADR-014), e a base foi regerada com o próprio script.
+- As entradas são byte a byte as mesmas registradas pelo Artur (SHA-256 dos 10 CSVs e da malha conferidos). As colunas antigas da base ficaram idênticas.
+- O script agora usa nomes canônicos no manifesto e preserva a `data_extracao` quando os hashes das entradas não mudam (18/11/2026).
+- A malha regerada tinha conteúdo idêntico e só um byte diferente no cabeçalho do gzip (sistema operacional), então foi mantido o arquivo original do Artur.
+- `src/baixa_malha_bairros.py` voltou a expor `DESTINO`, que o script do Artur importa e que o Ciclo 6 tinha removido. Era um conflito semântico que o git não acusou.
+
+**4. O que entrou de cada lado.**
+- **Estrutura do Ciclo 6:** três páginas, selo de cobertura, previsão.
+- **Da versão de 18/11, nas três páginas:**
+  - CSS para telas estreitas e celular (indicadores em duas colunas, gráficos empilhados, rótulos do mapa de calor ocultos com valor ao tocar);
+  - títulos de gráfico em `h3` com texto escapado;
+  - rodapé no fim da página, com a data de extração do `fontes.json`;
+  - fundo-mundo do Plotly servido de `app/static/`, sem CDN;
+  - série mensal com marcador quando há um mês só;
+  - mensagens de recorte vazio e textos de título revistos.
+- **Onde os dois lados tinham texto diferente, ficou a união:**
+  - o título anual tem os números absolutos (18/11) e a leitura "queda de registro" (Ciclo 6);
+  - o indicador de severidade mostra a contagem (18/11) e o percentual (Ciclo 6);
+  - o título de severidade tem a proporção com uma casa decimal (18/11) e a leitura de que são os SEM VÍTIMA que somem (Ciclo 6).
+
+Nenhuma funcionalidade foi removida.

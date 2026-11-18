@@ -11,6 +11,8 @@ Espaçamento numa grade de 8px. Paleta e contraste: tema.py (ADR-016).
 
 from __future__ import annotations
 
+from html import escape
+
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
@@ -20,12 +22,16 @@ import tema as t
 MESES = ["jan", "fev", "mar", "abr", "mai", "jun",
          "jul", "ago", "set", "out", "nov", "dez"]
 CONFIG = {"displayModeBar": False}
+# Mapas: o fundo-mundo do Plotly fica vazio e é servido pelo próprio Streamlit
+# (app/static/, enableStaticServing), sem consulta ao CDN — da versão de 18/11.
+CONFIG_MAPA = {**CONFIG, "topojsonURL": "./app/static/"}
 
 CSS = f"""
 <style>
-  [data-testid="stMainBlockContainer"] {{ padding: 32px 40px 96px 40px; max-width: 1440px; }}
+  [data-testid="stMainBlockContainer"] {{ padding: 48px 40px 40px; max-width: 1440px; }}
   [data-testid="stSidebar"] {{ background: {t.LATERAL}; }}
   [data-testid="stHeader"] {{ background: transparent; }}
+  .produto {{ font-size: 14px; font-weight: 700; color: {t.TEXTO_2}; margin: 0 0 12px; }}
   h1.titulo {{ font-size: 30px; line-height: 1.25; font-weight: 700; color: {t.TEXTO};
               margin: 0 0 8px 0; padding: 0; }}
   p.achado {{ font-size: 19px; line-height: 1.45; color: {t.TEXTO}; margin: 0 0 24px 0; }}
@@ -33,7 +39,8 @@ CSS = f"""
   .kpi {{ border-top: 3px solid {t.TEXTO}; padding: 8px 0 0 0; }}
   .kpi .v {{ font-size: 28px; font-weight: 700; color: {t.TEXTO}; line-height: 1.2; }}
   .kpi .r {{ font-size: 13px; color: {t.TEXTO_2}; line-height: 1.4; }}
-  .ch-t {{ font-size: 17px; font-weight: 700; color: {t.TEXTO}; line-height: 1.35; margin: 0; }}
+  h3.ch-t {{ font-size: 17px; font-weight: 700; color: {t.TEXTO}; line-height: 1.35;
+             margin: 0; padding: 0; }}
   .ch-s {{ font-size: 13px; color: {t.TEXTO_2}; line-height: 1.4; margin: 2px 0 8px 0; }}
   .nota {{ font-size: 12px; color: {t.TEXTO_2}; line-height: 1.5; margin: 0 0 32px 0; }}
   .nota b {{ color: {t.TEXTO}; }}
@@ -42,9 +49,8 @@ CSS = f"""
            margin: 8px 0 16px 0; }}
   .contador {{ font-size: 28px; font-weight: 700; color: {t.TEXTO}; line-height: 1.1; }}
   .contador-r {{ font-size: 13px; color: {t.TEXTO_2}; margin-bottom: 16px; }}
-  .rodape {{ position: fixed; left: 0; right: 0; bottom: 0; z-index: 1000100;
-            background: {t.FUNDO}; border-top: 1px solid {t.GRADE};
-            padding: 8px 40px; font-size: 12px; line-height: 1.5; color: {t.TEXTO_2}; }}
+  .rodape {{ border-top: 1px solid {t.GRADE}; padding: 16px 0 0; margin-top: 16px;
+            font-size: 13px; line-height: 1.55; color: {t.TEXTO_2}; }}
   .rodape a {{ color: {t.TEXTO}; }}
   .limites li {{ font-size: 13px; color: {t.TEXTO_2}; line-height: 1.5; margin-bottom: 4px; }}
   .limites li b {{ color: {t.TEXTO}; }}
@@ -67,6 +73,28 @@ CSS = f"""
   table.tab tr.sel td {{ font-weight: 700; background: {t.LATERAL}; }}
   .aplica {{ font-size: 12px; color: {t.TEXTO_2}; line-height: 1.5; }}
   .aplica b {{ color: {t.TEXTO}; }}
+  /* Telas estreitas e celular (versão de 18/11, estendida às três páginas). */
+  @media (max-width: 900px) {{
+    [data-testid="stMainBlockContainer"] {{ padding-inline: 24px; }}
+    .kpis {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }}
+    .caixa {{ grid-template-columns: 1fr; }}
+    [data-testid="stHorizontalBlock"]:has([data-testid="stPlotlyChart"]) {{
+      flex-direction: column;
+    }}
+    [data-testid="stHorizontalBlock"]:has([data-testid="stPlotlyChart"]) > [data-testid="stColumn"] {{
+      flex: 1 1 auto; width: 100%;
+    }}
+    /* Mapa de calor: sem rótulos nas células; o valor aparece ao tocar. */
+    .st-key-mapa_calor .infolayer .annotation {{ display: none; }}
+    table.tab {{ display: block; overflow-x: auto; }}
+  }}
+  @media (max-width: 520px) {{
+    [data-testid="stMainBlockContainer"] {{ padding-inline: 16px; }}
+    h1.titulo {{ font-size: 25px; }}
+    p.achado {{ font-size: 16px; }}
+    .kpi .v {{ font-size: 21px; }}
+    .kpi .r {{ font-size: 12px; }}
+  }}
 </style>
 """
 
@@ -80,8 +108,9 @@ def mes_ano(d: pd.Timestamp) -> str:
 
 
 def titulo_pagina(titulo: str, achado: str = ""):
-    st.markdown(f'<h1 class="titulo">{titulo}</h1>'
-                + (f'<p class="achado">{achado}</p>' if achado else ""),
+    """Título que afirma o achado. Texto puro: é escapado (vem de dados)."""
+    st.markdown(f'<h1 class="titulo">{escape(titulo)}</h1>'
+                + (f'<p class="achado">{escape(achado)}</p>' if achado else ""),
                 unsafe_allow_html=True)
 
 
@@ -90,7 +119,8 @@ def secao(texto: str):
 
 
 def titulo_grafico(titulo: str, sub: str):
-    st.markdown(f'<p class="ch-t">{titulo}</p><p class="ch-s">{sub}</p>',
+    """Título (h3, para leitores de tela) e subtítulo de um gráfico. Escapados."""
+    st.markdown(f'<h3 class="ch-t">{escape(titulo)}</h3><p class="ch-s">{escape(sub)}</p>',
                 unsafe_allow_html=True)
 
 

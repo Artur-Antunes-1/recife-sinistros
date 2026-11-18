@@ -63,11 +63,13 @@ não por necessidade funcional. Ver `docs/decisions.md` (ADR-001).
 
 ![Página de pontos críticos](docs/entregas/prints_E6/01_pontos_criticos.png)
 
-Com o ambiente ativado (`.venv\Scripts\activate`), a partir da raiz do repositório:
+Documentação da entrega: [E6 — dashboard consolidado](docs/entregas/E6_dashboard_consolidado.md) (principal) · [Entrega CC de 18/11/2026](docs/entrega-cc.md) (versão de página única).
+
+Na raiz do repositório, com o ambiente virtual ativo:
 
 ```powershell
-pip install -r requirements.txt
-streamlit run app/dashboard.py
+python -m pip install -r requirements.txt
+python -m streamlit run app/dashboard.py
 ```
 
 Abre em http://localhost:8501, com três páginas: **Pontos críticos** (só
@@ -75,13 +77,21 @@ chamados FINALIZADA), **Previsão de volume elevado** (classificadores, todos os
 status — os dois recortes são rotulados em cada página, ADR-017) e
 **Metodologia**.
 
-Pré-requisitos na primeira vez: o silver em `data/silver/`
-(`python src/transform_sinistros.py`) e a malha e o cadastro de bairros
-(`python src/baixa_malha_bairros.py`). Sem a malha o painel abre sem os mapas.
-Os artefatos da previsão já vêm versionados em `data/classificacao/`; para
-regerá-los a partir de `data/raw/`: `python src/classificacao/gerar_artefatos.py`.
+**Numa cópia limpa o painel abre sem rodar nenhum pipeline:** a base de
+2015–2024 e a malha vêm em `data/painel/` e os artefatos da previsão em
+`data/classificacao/`, todos versionados. Se `data/painel/` não existir, a
+página de pontos críticos cai para o silver local (`data/silver/`) e a malha
+de `data/geo/` (ADR-018).
 
-Prints: `docs/entregas/prints_E6/` (E6, uma por página) e `docs/img/` (E4).
+Para reproduzir os dados a partir das fontes:
+
+- base do painel: `python -m src.prepara_dados_painel --baixar` (ver [data/README.md](data/README.md));
+- silver completo: `python src/transform_sinistros.py`;
+- malha e cadastro de bairros: `python src/baixa_malha_bairros.py`;
+- artefatos da previsão: `python src/classificacao/gerar_artefatos.py`.
+
+Prints: `docs/entregas/prints_E6/` (E6, uma por página), `docs/img/dashboard_cc.png`
+(entrega CC) e `docs/img/` (E4).
 
 ## Estrutura
 

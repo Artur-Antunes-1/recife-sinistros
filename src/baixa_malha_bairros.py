@@ -33,9 +33,13 @@ from pathlib import Path
 API = "https://dados.recife.pe.gov.br/api/3/action/package_show?id=area-urbana"
 RAIZ = Path(__file__).resolve().parent.parent
 
+# Caminho da malha. Mantido como constante porque src/prepara_dados_painel.py
+# (base distribuída em data/painel/, ADR-018) importa DESTINO.
+DESTINO = RAIZ / "data" / "geo" / "bairros-do-recife.geojson"
+
 # (nome do recurso no portal, formato, destino local)
 RECURSOS = [
-    ("Bairros do Recife", "geojson", RAIZ / "data" / "geo" / "bairros-do-recife.geojson"),
+    ("Bairros do Recife", "geojson", DESTINO),
     ("Bairros e RPAs do Recife", "csv", RAIZ / "data" / "raw" / "bairros_oficiais.csv"),
 ]
 

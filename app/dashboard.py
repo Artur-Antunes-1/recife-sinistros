@@ -30,36 +30,18 @@ import dados_painel as dp  # noqa: E402
 import estado  # noqa: E402
 import ui  # noqa: E402
 
-URL_RELATORIO = ("https://github.com/mbvo1/recife-sinistros/blob/master/"
-                 "docs/relatorio_qualidade_silver.md")
-
 st.set_page_config(page_title="Sinistros de trânsito — Recife",
-                   layout="wide", initial_sidebar_state="expanded")
+                   layout="wide", initial_sidebar_state="auto")
 ui.estilo()
 
 df, _ = estado.silver()
 if df is None:
-    st.error("Silver não encontrado em data/silver/sinistros_consolidado.csv. "
-             "Gere com: python src/transform_sinistros.py")
+    st.error("Não foi possível carregar a base do painel. Confira os arquivos em data/painel/ "
+             "ou gere o silver local com: python src/transform_sinistros.py")
     st.stop()
-art = estado.artefatos_previsao()
-
-# --- Rodapé fixo (renderizado cedo: aparece mesmo com recorte vazio) ---------
-
-_ok = df.loc[~df["data_fora_do_ano"], "data"]
-_baixado, _gerado = dp.data_download_raw(), dp.data_arquivo(dp.CAMINHO_SILVER)
-_extracao = (f"<b>Extração:</b> CSVs baixados em {_baixado:%d/%m/%Y} · silver gerado em "
-             f"{_gerado:%d/%m/%Y}. " if _baixado is not None and _gerado is not None else "")
-_total_prev = (f" · {dp.fmt_int(art['cobertura']['registros'])} chamados de todos os status na "
-               f"previsão" if art else "")
-st.markdown(
-    f"""<div class="rodape">
-    <b>Fonte:</b> CTTU — Portal de Dados Abertos do Recife, chamados de sinistro de trânsito
-    (ODbL); malha e cadastro de bairros: dataset “Área urbana” (ODbL).
-    <b>Período:</b> {ui.mes_ano(_ok.min())} a {ui.mes_ano(_ok.max())}. {_extracao}
-    <b>Total:</b> {dp.fmt_int(len(df))} registros FINALIZADA nos pontos críticos{_total_prev}.
-    <a href="{URL_RELATORIO}" target="_blank">Relatório de qualidade do silver</a>
-    </div>""", unsafe_allow_html=True)
+if df.empty:
+    st.error("A base do painel está vazia.")
+    st.stop()
 
 # --- Filtros (barra lateral, comuns a todas as páginas) --------------------------
 
@@ -83,6 +65,7 @@ paginas = [
     st.Page("paginas/metodologia.py", title="Metodologia", url_path="metodologia"),
 ]
 pagina = st.navigation(paginas)
+st.markdown('<p class="produto">Sinistros de trânsito no Recife · CTTU</p>', unsafe_allow_html=True)
 
 with st.sidebar:
     ui.secao("Filtros")
@@ -100,3 +83,4 @@ with st.sidebar:
     st.caption("Cada página diz, no topo, quais destes filtros se aplicam a ela.")
 
 pagina.run()
+estado.rodape()  # se a página parar antes (recorte vazio), ela mesma desenha o rodapé

@@ -27,6 +27,7 @@ art = estado.artefatos_previsao()
 if art is None:
     ui.titulo_pagina("Artefatos da previsão não encontrados",
                      "Gere com: python src/classificacao/gerar_artefatos.py")
+    estado.rodape()
     st.stop()
 
 df, _ = estado.silver()
@@ -296,7 +297,7 @@ else:
             fig.update_geos(fitbounds="locations", visible=False, projection_type="mercator",
                             bgcolor=t.FUNDO)
             ui.layout(fig, 460, dragmode=False)
-            st.plotly_chart(fig, width="stretch", config=ui.CONFIG, key="mapa_prev")
+            st.plotly_chart(fig, width="stretch", config=ui.CONFIG_MAPA, key="mapa_prev")
     with col_c:
         ui.titulo_grafico("Contagem do mês", f"{rot_mes} · n = {len(pm)} bairro-meses")
         corpo = "".join(

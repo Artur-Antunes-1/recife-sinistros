@@ -1,8 +1,10 @@
 # E6 — Dashboard consolidado (Projetos 5, G15)
 
-Painel único em Streamlit sobre os chamados de sinistro de trânsito da CTTU (Recife, 2015–2024), com três páginas: **Pontos críticos**, **Previsão de volume elevado** e **Metodologia**. Os dados são carregados dos CSVs reais. Toda visualização é interativa e reage aos filtros. Nada é treinado em tempo de execução: a página de previsão lê artefatos pré-calculados (`data/classificacao/`). Todo número abaixo foi conferido contra a saída do código por `tests/test_docs_e6.py`.
+Painel único em Streamlit sobre os chamados de sinistro de trânsito da CTTU (Recife, 2015–2024), com três páginas: **Pontos críticos**, **Previsão de volume elevado** e **Metodologia**. Os dados vêm dos CSVs reais da CTTU: a página de pontos críticos lê a base versionada em `data/painel/` (ou, sem ela, o silver local) e por isso o painel abre numa cópia limpa sem rodar nenhum pipeline (ADR-018). Toda visualização é interativa e reage aos filtros. Nada é treinado em tempo de execução: a página de previsão lê artefatos pré-calculados (`data/classificacao/`). Todo número abaixo foi conferido contra a saída do código por `tests/test_docs_e6.py`.
 
 Prints em 1440px: [`prints_E6/`](prints_E6/) — uma imagem por página e um recorte filtrado.
+
+**Da versão de página única do Artur (entrega CC, 18/11, [`docs/entrega-cc.md`](../entrega-cc.md)) vieram:** a base empacotada em `data/painel/` e o script que a gera (`src/prepara_dados_painel.py`), a regra do mapa de calor que exclui datas de outro ano e horas inválidas, a adaptação a telas estreitas e celular (indicadores em duas colunas, gráficos empilhados, toque nas células do mapa de calor), o fundo do mapa servido localmente, títulos acessíveis (h3, texto escapado), o rodapé no fim da página e mensagens próprias para recortes vazios.
 
 ## Dois recortes, rotulados em cada página
 
@@ -42,7 +44,7 @@ O critério decisivo foi a reprodutibilidade. O painel importa o mesmo código q
 ## Insights até agora
 
 1. **Concentração.** 10 bairros concentram **46,0%** dos chamados FINALIZADA com bairro identificado, e Boa Viagem sozinha tem **12,3%** (7.220). *Página: Pontos críticos.*
-2. **Pico em dia útil de manhã.** O pico é terça às **8h** (835 chamados), e **75%** dos chamados com hora caem entre 7h e 19h. *Página: Pontos críticos (hora × dia).*
+2. **Pico em dia útil de manhã.** O pico é terça às **8h** (833 chamados), e **75%** dos chamados com hora caem entre 7h e 19h. *Página: Pontos críticos (hora × dia).*
 3. **A queda de 2019 a 2021 é de registro, não necessariamente de sinistros.** No silver os chamados vão de 10.109 a 2.095 (−79%). Quase toda a queda está nos SEM VÍTIMA (8.046 → 434), enquanto os COM VÍTIMA variam menos (2.036 → 1.631). Por isso a parcela COM VÍTIMA passa de 20% (2019) para 88% (2024). *Página: Pontos críticos (série e severidade).*
 4. **O modelo acerta muito, mas pouco além do ingênuo.** A regressão logística identifica **92,3%** dos bairro-meses de volume elevado em 2024 (F1 **0,845**), contra F1 **0,835** de repetir o mês anterior: 46 omissões a menos e 51 alertas falsos a mais. Os IC 95% exploratórios se sobrepõem (0,828–0,860 contra 0,815–0,853). *Página: Previsão.*
 5. **A escolha foi feita antes do teste.** A árvore tem F1 maior no teste (0,851), mas a logística venceu na validação de 2023, como mandava o protocolo. O F1 mensal vai de 0,786 (fev/2024) a 0,897 (ago/2024). *Página: Previsão.*
@@ -54,11 +56,13 @@ O critério decisivo foi a reprodutibilidade. O painel importa o mesmo código q
 - 2015 começa em junho, 2022 não tem horário, vítimas fatais só são conhecidas a partir de 2021, e 2024 termina em 28/12/2024 com 36 datas de outro ano.
 - A previsão é retrospectiva e não teve validação operacional.
 
+**Errata do relatório de 13/11** (`Relatorio_Ciclo6_G15.pdf`): ele cita 835 chamados no pico de terça às 8h. O valor correto é **833**. A regra antiga do mapa de calor contava 32 chamados com data de outro ano (dez/2025, data não confiável — já excluídos da série mensal), dos quais 2 caem numa terça às 8h, e perdia sem contar 1 chamado com hora inválida. A regra atual exclui os dois casos e fecha a conta: matriz + fora = total (ADR-018). Os 75% não mudam.
+
 ## Como rodar
 
 ```powershell
-pip install -r requirements.txt
-streamlit run app/dashboard.py
+python -m pip install -r requirements.txt
+python -m streamlit run app/dashboard.py
 ```
 
-Na primeira vez, gere os dados derivados: `python src/transform_sinistros.py` (silver), `python src/baixa_malha_bairros.py` (malha e cadastro de bairros) e, se quiser regerar os artefatos já versionados, `python src/classificacao/gerar_artefatos.py`. Testes: `pytest`.
+Numa cópia limpa isso basta: a base, a malha e os artefatos da previsão são versionados. Para reproduzir os dados das fontes: `python -m src.prepara_dados_painel --baixar` (base do painel), `python src/transform_sinistros.py` (silver), `python src/baixa_malha_bairros.py` (malha e cadastro) e `python src/classificacao/gerar_artefatos.py` (artefatos). Testes: `pytest`.
