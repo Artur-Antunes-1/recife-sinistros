@@ -86,6 +86,42 @@ def test_hora_dia_conta_quem_nao_tem_hora():
     assert int(m.values.sum()) == 4
 
 
+def test_por_hora_soma_os_dias_e_bate_com_o_mapa_de_calor():
+    """Sinistros x hora (sem dia da semana): mesmo n e mesmo critério do mapa de calor."""
+    df = _df_sintetico()
+    ph, fora = dp.por_hora(df)
+    m, fora_m = dp.hora_dia(df)
+    assert len(ph) == 24 and fora == fora_m == 1
+    assert ph[8] == 2 and ph[17] == 2 and int(ph.sum()) == int(m.values.sum()) == 4
+
+
+def test_pct_com_vitima_tira_severidade_desconhecida_do_denominador():
+    df = _df_sintetico()
+    df.loc[3, "severidade"] = dp.BAIRRO_NAO_INFORMADO  # 2021: sobra só a VÍTIMA FATAL
+    pv = dp.pct_com_vitima_por_ano(df)
+    assert pv.loc[2019, "pct"] == 50.0           # 1 COM VÍTIMA de 2 conhecidos
+    assert pv.loc[2020, "pct"] == 100.0
+    assert pv.loc[2021, "conhecida"] == 1 and pv.loc[2021, "pct"] == 100.0
+
+
+def test_fatais_por_registro_ignora_anos_antes_de_2021():
+    """Antes de 2021 vitimasfatais vazio é desconhecido: não pode virar zero."""
+    df = _df_sintetico()
+    df["vitimasfatais"] = ["", "", "", "0", "2"]  # 2019-2020 vazios, como no dado real
+    f = dp.fatais_por_registro(df)
+    assert list(f.index) == [2021]
+    assert f.loc[2021, "registros"] == 2 and f.loc[2021, "mortes"] == 2
+    assert f.loc[2021, "por_mil"] == 1000.0
+    assert dp.fatais_por_registro(df[df["ano"] < 2021]).empty
+
+
+def test_fatais_por_registro_falha_alto_com_valor_nao_numerico():
+    df = _df_sintetico()
+    df["vitimasfatais"] = ["", "", "", "0", "x"]
+    with pytest.raises(ValueError):
+        dp.fatais_por_registro(df)
+
+
 def test_hora_dia_contabiliza_horario_invalido_e_data_fora_do_ano():
     df = _df_sintetico()
     df.loc[0, "hora_int"] = 24
