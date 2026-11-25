@@ -261,10 +261,57 @@ def hora_dia(rec: pd.DataFrame) -> tuple[pd.DataFrame, int]:
     return m, len(rec) - len(ok)
 
 
+def por_hora(rec: pd.DataFrame) -> tuple[pd.Series, int]:
+    """Registros por hora do dia (0-23), sem separar por dia da semana.
+
+    É a soma das linhas da matriz de hora_dia: usa exatamente o mesmo
+    critério de exclusão, para o gráfico por hora e o mapa de calor terem o
+    mesmo n na tela (feedback da professora: ver sinistros x hora sem o dia)."""
+    m, fora = hora_dia(rec)
+    return m.sum(axis=0), fora
+
+
 def severidade_por_ano(rec: pd.DataFrame) -> pd.DataFrame:
     """Contagem por ano x severidade, colunas na ordem de SEVERIDADES."""
     return (rec.groupby(["ano", "severidade"]).size().unstack(fill_value=0)
                .reindex(columns=SEVERIDADES, fill_value=0))
+
+
+def pct_com_vitima_por_ano(rec: pd.DataFrame) -> pd.DataFrame:
+    """Por ano: registros com severidade conhecida, quantos têm vítima
+    (COM VÍTIMA + VÍTIMA FATAL) e o %. Severidade "NÃO INFORMADO" sai do
+    denominador — não sabemos se teve vítima. Anos sem severidade conhecida
+    no recorte ficam de fora (evita divisão por zero)."""
+    spa = severidade_por_ano(rec)
+    conhecida = spa[["SEM VÍTIMA", "COM VÍTIMA", "VÍTIMA FATAL"]].sum(axis=1)
+    com_vitima = spa["COM VÍTIMA"] + spa["VÍTIMA FATAL"]
+    out = pd.DataFrame({"conhecida": conhecida, "com_vitima": com_vitima})
+    out = out[out["conhecida"] > 0]
+    out["pct"] = out["com_vitima"] / out["conhecida"] * 100
+    return out
+
+
+# A coluna vitimasfatais só tem preenchimento consistente a partir de 2021
+# (antes: 0% a 1% das células). Ver ADR-016 e o selo de cobertura.
+ANO_INICIO_VITIMASFATAIS = 2021
+
+
+def fatais_por_registro(rec: pd.DataFrame) -> pd.DataFrame:
+    """Por ano, de 2021 em diante: registros, soma de vitimasfatais (pessoas
+    mortas) e mortes por 1.000 registros.
+
+    Por 1.000 porque a taxa por registro é ~0,01 e ficaria ilegível. Anos
+    antes de ANO_INICIO_VITIMASFATAIS NÃO entram: lá célula vazia é
+    desconhecido, e somar daria um falso zero. Célula vazia em 2021+ (rara)
+    também fica fora do numerador e do denominador."""
+    r = rec[(rec["ano"] >= ANO_INICIO_VITIMASFATAIS) & (rec["vitimasfatais"] != "")]
+    if r.empty:
+        return pd.DataFrame(columns=["registros", "mortes", "por_mil"])
+    mortes = pd.to_numeric(r["vitimasfatais"], errors="raise")  # falha alto se vier lixo
+    out = pd.DataFrame({"registros": r.groupby("ano").size(),
+                        "mortes": mortes.groupby(r["ano"]).sum().astype(int)})
+    out["por_mil"] = out["mortes"] / out["registros"] * 1000
+    return out
 
 
 # --- Metadados para o rodapé ---------------------------------------------------
